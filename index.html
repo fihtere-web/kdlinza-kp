@@ -1703,7 +1703,10 @@ async function saveKPToJournal() {
     sum_disc:      sumDisc,
     data:          { frames, lenses, services }
   });
-  if (error) console.error('Ошибка сохранения КП:', error);
+  if (error) {
+    console.error('Ошибка сохранения КП:', error);
+    alert('⚠️ КП не сохранилось в журнал:\n' + error.message + '\n\nОбратитесь к администратору.');
+  }
 }
 
 /* ── Журнал ───────────────────────────────────────────────────────────────── */
