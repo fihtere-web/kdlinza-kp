@@ -450,6 +450,75 @@ table.items .td-del { width: 28px; text-align: center; }
 .jnl-table tbody tr:hover td { background: var(--blue-lt); }
 .jnl-total { font-weight: 700; color: var(--blue); text-align: right; }
 .jnl-emp   { color: #555; font-size: 13px; }
+.jnl-date  { color: #555; font-size: 13px; }
+
+/* Фильтры журнала */
+.journal-filters {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: sticky; top: 104px; z-index: 98;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+.jf-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.jf-label { font-size: 12px; font-weight: 600; color: var(--gray); white-space: nowrap; }
+.jf-date {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  color: var(--dark);
+  outline: none;
+  cursor: pointer;
+}
+.jf-date:focus { border-color: var(--blue); }
+.jf-sep { width: 1px; height: 24px; background: var(--border); }
+.jf-search {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+.jf-search input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px 6px 30px;
+  font-size: 13px;
+  color: var(--dark);
+  outline: none;
+}
+.jf-search input:focus { border-color: var(--blue); }
+.jf-search::before {
+  content: '🔍';
+  position: absolute;
+  left: 8px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+}
+.btn-jf {
+  background: var(--blue-lt);
+  border: 1.5px solid var(--border);
+  color: var(--blue-dk);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.btn-jf:hover { background: #d0eaf8; }
+.btn-jf.active { background: var(--blue); color: white; border-color: var(--blue); }
+.jnl-count { font-size: 12px; color: var(--gray); margin-left: auto; white-space: nowrap; }
 
 /* ═══ ИНСТРУКЦИЯ (МОДАЛЬНОЕ ОКНО) ══════════════════════════════════════════ */
 .instr-overlay {
@@ -1043,6 +1112,27 @@ input[readonly] {
   <div class="journal-header">
     <div class="jh-title">📋 Журнал коммерческих предложений</div>
     <button class="btn-new-kp" onclick="newKP()">✏️ Создать коммерческое предложение</button>
+  </div>
+  <div class="journal-filters">
+    <div class="jf-group">
+      <span class="jf-label">Период:</span>
+      <button class="btn-jf active" id="jf-btn-today" onclick="setJournalPeriod('today')">Сегодня</button>
+      <button class="btn-jf" id="jf-btn-week"  onclick="setJournalPeriod('week')">Неделя</button>
+      <button class="btn-jf" id="jf-btn-month" onclick="setJournalPeriod('month')">Месяц</button>
+      <button class="btn-jf" id="jf-btn-all"   onclick="setJournalPeriod('all')">Все</button>
+    </div>
+    <div class="jf-sep"></div>
+    <div class="jf-group">
+      <span class="jf-label">С</span>
+      <input type="date" class="jf-date" id="jf-from" oninput="setJournalPeriod('custom')">
+      <span class="jf-label">По</span>
+      <input type="date" class="jf-date" id="jf-to"   oninput="setJournalPeriod('custom')">
+    </div>
+    <div class="jf-sep"></div>
+    <div class="jf-search">
+      <input type="text" id="jf-search" placeholder="Поиск по ФИО или телефону..." oninput="applyJournalFilter()">
+    </div>
+    <span class="jnl-count" id="jnl-count"></span>
   </div>
   <div class="journal-body">
     <div id="journal-content"><!-- заполняется JS --></div>
@@ -1811,6 +1901,9 @@ function onLogin(user) {
     display + (currentIsAdmin ? ' 👑' : '');
   // Дата всегда только для чтения — ставится автоматически
   lockDateField();
+  // При входе сразу открываем журнал с КП за сегодня
+  setJournalPeriod('today');
+  openJournal();
 }
 
 function lockDateField() {
@@ -1962,19 +2055,75 @@ async function renderJournal() {
   }
 
   journalCache = records || [];
+  applyJournalFilter();
+}
 
-  if (journalCache.length === 0) {
+function setJournalPeriod(period) {
+  const today = new Date().toISOString().split('T')[0];
+  const fromEl = document.getElementById('jf-from');
+  const toEl   = document.getElementById('jf-to');
+
+  // Сброс активных кнопок
+  ['today','week','month','all'].forEach(p => {
+    const btn = document.getElementById('jf-btn-' + p);
+    if (btn) btn.classList.toggle('active', p === period);
+  });
+
+  if (period === 'today') {
+    fromEl.value = today;
+    toEl.value   = today;
+  } else if (period === 'week') {
+    const d = new Date(); d.setDate(d.getDate() - 6);
+    fromEl.value = d.toISOString().split('T')[0];
+    toEl.value   = today;
+  } else if (period === 'month') {
+    const d = new Date(); d.setDate(d.getDate() - 29);
+    fromEl.value = d.toISOString().split('T')[0];
+    toEl.value   = today;
+  } else if (period === 'all') {
+    fromEl.value = '';
+    toEl.value   = '';
+  }
+  // 'custom' — даты уже заданы пользователем, просто фильтруем
+  applyJournalFilter();
+}
+
+function applyJournalFilter() {
+  const isAdmin  = currentIsAdmin;
+  const fromVal  = document.getElementById('jf-from').value;  // YYYY-MM-DD или ''
+  const toVal    = document.getElementById('jf-to').value;
+  const search   = (document.getElementById('jf-search').value || '').trim().toLowerCase();
+  const container = document.getElementById('journal-content');
+
+  let filtered = journalCache.filter(r => {
+    // Фильтр по дате (created_at)
+    const recDate = r.created_at ? r.created_at.split('T')[0] : '';
+    if (fromVal && recDate < fromVal) return false;
+    if (toVal   && recDate > toVal)   return false;
+    // Поиск по ФИО или телефону
+    if (search) {
+      const name  = (r.client_name  || '').toLowerCase();
+      const phone = (r.client_phone || '').toLowerCase();
+      if (!name.includes(search) && !phone.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('jnl-count').textContent =
+    filtered.length ? `Найдено: ${filtered.length}` : '';
+
+  if (filtered.length === 0) {
     container.innerHTML = `
       <div class="journal-empty">
         <div>📄</div>
-        Журнал пуст. Создайте первое коммерческое предложение.
+        ${journalCache.length === 0
+          ? 'Журнал пуст. Создайте первое коммерческое предложение.'
+          : 'Ничего не найдено. Измените фильтр или поисковый запрос.'}
       </div>`;
     return;
   }
 
-  const isAdmin = currentIsAdmin;
-
-  const rows = journalCache.map(r => `
+  const rows = filtered.map(r => `
     <tr>
       <td><strong>${r.client_name || '—'}</strong></td>
       <td>${r.client_phone || '—'}</td>
@@ -1987,9 +2136,7 @@ async function renderJournal() {
       </td>
     </tr>`).join('');
 
-  const adminHeader = isAdmin
-    ? `<th style="width:15%">Сотрудник</th>` : '';
-
+  const adminHeader = isAdmin ? `<th style="width:15%">Сотрудник</th>` : '';
   container.innerHTML = `
     <table class="jnl-table">
       <thead><tr>
