@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>КДлинза — Конструктор КП</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ═══ RESET ════════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -338,6 +339,42 @@ table.items .td-del { width: 28px; text-align: center; }
   transition: background .15s;
 }
 .btn-print:hover { background: var(--blue-dk); }
+
+/* ═══ LOGIN SCREEN ══════════════════════════════════════════════════════════ */
+#login-screen {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, #005C8A 0%, #008DD2 100%);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: white;
+  border-radius: 14px;
+  padding: 44px 40px 36px;
+  width: 360px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+}
+.login-logo { text-align: center; font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: .5px; }
+.login-sub  { text-align: center; font-size: 12px; color: var(--gray); margin: 4px 0 28px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 5px; }
+.login-field input { width: 100%; border: 1.5px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 14px; font-family: Arial,sans-serif; outline: none; transition: border-color .15s, box-shadow .15s; }
+.login-field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,141,210,.12); }
+.btn-login { width: 100%; background: var(--blue); color: white; border: none; border-radius: 7px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background .15s; }
+.btn-login:hover { background: var(--blue-dk); }
+.btn-login:disabled { opacity: .6; cursor: default; }
+.login-error { color: #D63031; font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
+.user-pill {
+  background: rgba(255,255,255,.15);
+  color: white;
+  border-radius: 20px;
+  padding: 4px 12px 4px 8px;
+  font-size: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.user-pill .dot { width: 8px; height: 8px; background: #2ECC71; border-radius: 50%; }
+.btn-logout { background: none; border: 1px solid rgba(255,255,255,.35); color: white; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; transition: background .12s; }
+.btn-logout:hover { background: rgba(255,255,255,.15); }
 
 /* ═══ NOTE card ═════════════════════════════════════════════════════════════ */
 .note-card { background: #FFF8E1; border-left: 4px solid #E5A000; padding: 10px 14px;
@@ -699,6 +736,24 @@ table.items .td-del { width: 28px; text-align: center; }
 <!-- ════════════════════════════════════════════════════════════════════════ -->
 <div class="screen-only">
 
+  <!-- ══ LOGIN SCREEN ══════════════════════════════════════════════════════ -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">KDLINZA.RU</div>
+      <div class="login-sub">Конструктор коммерческих предложений</div>
+      <div class="login-field">
+        <label>Логин</label>
+        <input type="text" id="login-email" placeholder="ivanov" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="login-field">
+        <label>Пароль</label>
+        <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-login" id="btn-login" onclick="doLogin()">Войти</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
   <!-- Validation toast -->
   <div class="val-toast" id="val-toast">
     <span class="toast-close" onclick="document.getElementById('val-toast').classList.remove('show')">✕</span>
@@ -709,8 +764,10 @@ table.items .td-del { width: 28px; text-align: center; }
   <header class="app-header">
     <div class="logo">KDLINZA.RU <span>Конструктор коммерческого предложения</span></div>
     <div style="display:flex;align-items:center;gap:8px;">
+      <div class="user-pill"><span class="dot"></span><span id="user-email-display"></span></div>
       <button class="btn-jnl-hdr" onclick="openJournal()">📋 Журнал КП</button>
       <button class="btn-print-top" onclick="doPrint()">🖨️ Распечатать КП</button>
+      <button class="btn-logout" onclick="doLogout()">Выйти</button>
     </div>
   </header>
 
@@ -1411,32 +1468,73 @@ function validateKP() {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   ЖУРНАЛ КП  (localStorage)
+   SUPABASE — авторизация и хранилище КП
 ════════════════════════════════════════════════════════════════════════════ */
-const KP_STORE = 'kdlinza_kp_journal_v1';
+const SUPA_URL = 'https://avwznovjzdtsfplczoao.supabase.co';
+const SUPA_KEY = 'sb_publishable_eiwaDf75VPzaC00jqAFM5g_4avLI1HH';
+const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-function loadJournalData() {
-  try { return JSON.parse(localStorage.getItem(KP_STORE) || '[]'); }
-  catch(e) { return []; }
+let currentUser = null;
+let journalCache = [];   // кэш записей для reopenKP
+
+/* ── Auth ─────────────────────────────────────────────────────────────────── */
+async function initAuth() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) onLogin(session.user); else showLoginScreen();
+
+  supa.auth.onAuthStateChange((_event, session) => {
+    if (session) onLogin(session.user); else showLoginScreen();
+  });
 }
-function saveJournalData(data) {
-  localStorage.setItem(KP_STORE, JSON.stringify(data));
+
+function onLogin(user) {
+  currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  // показываем только логин, без @kdlinza.ru
+  const display = user.email.replace(LOGIN_DOMAIN, '');
+  document.getElementById('user-email-display').textContent = display;
 }
 
-function saveKPToJournal() {
-  const records = loadJournalData();
+function showLoginScreen() {
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+}
 
-  // Collect all form data
-  const frames = [];
+const LOGIN_DOMAIN = '@kdlinza.ru';
+
+async function doLogin() {
+  const login    = document.getElementById('login-email').value.trim().toLowerCase();
+  const email    = login.includes('@') ? login : login + LOGIN_DOMAIN;
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('btn-login');
+  errEl.textContent = '';
+  btn.textContent = 'Вхожу...';
+  btn.disabled = true;
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = 'Неверный email или пароль';
+    btn.textContent = 'Войти';
+    btn.disabled = false;
+  }
+}
+
+async function doLogout() {
+  await supa.auth.signOut();
+}
+
+/* ── Сохранение КП в Supabase ─────────────────────────────────────────────── */
+async function saveKPToJournal() {
+  if (!currentUser) return;
+
+  const frames = [], lenses = [], services = [];
   document.querySelectorAll('#frame-rows tr').forEach(tr => {
-    const inputs = tr.querySelectorAll('input[type="text"], input:not([type])');
-    const name  = inputs[0]?.value || '';
+    const inputs = tr.querySelectorAll('input');
+    const name = inputs[0]?.value || '';
     const price = parseNum(inputs[1]?.value);
     const disc  = parseNum(tr.querySelector('.disc-in')?.value);
     if (name || price) frames.push({ name, price, disc });
   });
-
-  const lenses = [];
   document.querySelectorAll('#lens-rows tr').forEach(tr => {
     const type  = tr.querySelector('.type-sel')?.value  || '';
     const brand = tr.querySelector('.brand-sel')?.value || '';
@@ -1447,8 +1545,6 @@ function saveKPToJournal() {
     const disc  = parseNum(inputs[2]?.value);
     if (type || name || price) lenses.push({ type, brand, pos, name, price, disc });
   });
-
-  const services = [];
   document.querySelectorAll('#svc-rows tr').forEach(tr => {
     const inputs = tr.querySelectorAll('input');
     const name  = inputs[0]?.value || '';
@@ -1456,10 +1552,9 @@ function saveKPToJournal() {
     if (name || price) services.push({ name, price });
   });
 
-  // Calculate totals
   let sumBefore = 0, sumDisc = 0, sumSvc = 0;
-  frames.forEach(r => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
-  lenses.forEach(r => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
+  frames.forEach(r   => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
+  lenses.forEach(r   => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
   services.forEach(r => { sumSvc += r.price; });
   const grandTotal = sumBefore - sumDisc + sumSvc;
 
@@ -1467,25 +1562,22 @@ function saveKPToJournal() {
   let dateStr = '—';
   if (dateVal) { const [y,m,d] = dateVal.split('-'); dateStr = `${d}.${m}.${y}`; }
 
-  const record = {
-    id: Date.now(),
-    savedAt: new Date().toISOString(),
-    clientName:  document.getElementById('cl-name').value  || '—',
-    clientPhone: document.getElementById('cl-phone').value || '—',
-    clientDate:  dateStr,
-    total:       grandTotal,
-    sumBefore:   sumBefore + sumSvc,
-    sumDisc,
-    frames, lenses, services
-  };
-
-  records.unshift(record);   // newest first
-  saveJournalData(records);
+  const { error } = await supa.from('kp_records').insert({
+    user_id:      currentUser.id,
+    client_name:  document.getElementById('cl-name').value  || '—',
+    client_phone: document.getElementById('cl-phone').value || '—',
+    client_date:  dateStr,
+    total:        grandTotal,
+    sum_before:   sumBefore + sumSvc,
+    sum_disc:     sumDisc,
+    data:         { frames, lenses, services }
+  });
+  if (error) console.error('Ошибка сохранения КП:', error);
 }
 
+/* ── Журнал ───────────────────────────────────────────────────────────────── */
 function openJournal() {
   document.getElementById('journal-view').classList.add('active');
-  // hide the form part (only app-body, not the whole screen-only which contains toast)
   document.querySelector('.app-header').style.display = 'none';
   document.querySelector('.app-body').style.display   = 'none';
   renderJournal();
@@ -1497,11 +1589,23 @@ function closeJournal() {
   document.querySelector('.app-body').style.display   = '';
 }
 
-function renderJournal() {
-  const records = loadJournalData();
+async function renderJournal() {
   const container = document.getElementById('journal-content');
+  container.innerHTML = '<div style="text-align:center;padding:48px;color:#888;font-size:14px;">⏳ Загрузка...</div>';
 
-  if (records.length === 0) {
+  const { data: records, error } = await supa
+    .from('kp_records')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<div style="color:#e44;padding:24px;font-size:14px;">Ошибка загрузки: ${error.message}</div>`;
+    return;
+  }
+
+  journalCache = records || [];
+
+  if (journalCache.length === 0) {
     container.innerHTML = `
       <div class="journal-empty">
         <div>📄</div>
@@ -1510,65 +1614,56 @@ function renderJournal() {
     return;
   }
 
-  let rows = records.map((r, idx) => `
+  const rows = journalCache.map(r => `
     <tr>
-      <td><strong>${r.clientName}</strong></td>
-      <td>${r.clientPhone}</td>
-      <td class="jnl-date">${r.clientDate}</td>
-      <td class="jnl-total">${r.total.toLocaleString('ru-RU')} ₽</td>
+      <td><strong>${r.client_name || '—'}</strong></td>
+      <td>${r.client_phone || '—'}</td>
+      <td class="jnl-date">${r.client_date || '—'}</td>
+      <td class="jnl-total">${(r.total || 0).toLocaleString('ru-RU')} ₽</td>
       <td class="jnl-actions">
-        <button class="btn-jnl-open" onclick="reopenKP(${r.id})">🖨️ Открыть КП</button>
+        <button class="btn-jnl-open" onclick="reopenKP(${r.id})">✏️ Открыть</button>
         <button class="btn-jnl-del"  onclick="deleteKP(${r.id})">✕</button>
       </td>
     </tr>`).join('');
 
   container.innerHTML = `
     <table class="jnl-table">
-      <thead>
-        <tr>
-          <th style="width:28%">ФИО клиента</th>
-          <th style="width:18%">Телефон</th>
-          <th style="width:14%">Дата КП</th>
-          <th class="right" style="width:18%">Итого к оплате</th>
-          <th style="width:22%"></th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th style="width:27%">ФИО клиента</th>
+        <th style="width:18%">Телефон</th>
+        <th style="width:13%">Дата КП</th>
+        <th class="right" style="width:18%">Итого к оплате</th>
+        <th style="width:24%"></th>
+      </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
 
-function deleteKP(id) {
+async function deleteKP(id) {
   if (!confirm('Удалить это КП из журнала?')) return;
-  const records = loadJournalData().filter(r => r.id !== id);
-  saveJournalData(records);
+  await supa.from('kp_records').delete().eq('id', id);
   renderJournal();
 }
 
 function reopenKP(id) {
-  const records = loadJournalData();
-  const r = records.find(rec => rec.id === id);
-  if (!r) return;
-
-  // Switch to form
+  const r = journalCache.find(rec => rec.id === id);
+  if (!r || !r.data) return;
   closeJournal();
 
-  // Fill client info
-  document.getElementById('cl-name').value  = r.clientName !== '—' ? r.clientName  : '';
-  document.getElementById('cl-phone').value = r.clientPhone !== '—' ? r.clientPhone : '';
-  if (r.clientDate && r.clientDate !== '—') {
-    const [d, m, y] = r.clientDate.split('.');
-    document.getElementById('cl-date').value = `${y}-${m}-${d}`;
+  document.getElementById('cl-name').value  = r.client_name !== '—' ? r.client_name  : '';
+  document.getElementById('cl-phone').value = r.client_phone !== '—' ? r.client_phone : '';
+  if (r.client_date && r.client_date !== '—') {
+    const parts = r.client_date.split('.');
+    if (parts.length === 3) document.getElementById('cl-date').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
 
-  // Clear current rows
   document.getElementById('frame-rows').innerHTML = '';
   document.getElementById('lens-rows').innerHTML  = '';
   document.getElementById('svc-rows').innerHTML   = '';
 
-  // Re-add rows
-  r.frames.forEach(f   => addFrameRow(f.name, f.price > 0 ? String(f.price) : '', String(f.disc)));
-  r.lenses.forEach(l   => addLensRow(l.type, l.brand, l.pos || '', l.name, l.price > 0 ? String(l.price) : '', String(l.disc)));
-  r.services.forEach(s => addSvcRow(s.name, s.price > 0 ? String(s.price) : ''));
+  (r.data.frames   || []).forEach(f => addFrameRow(f.name, f.price > 0 ? String(f.price) : '', String(f.disc || 0)));
+  (r.data.lenses   || []).forEach(l => addLensRow(l.type || '', l.brand || '', l.pos || '', l.name || '', l.price > 0 ? String(l.price) : '', String(l.disc || 0)));
+  (r.data.services || []).forEach(s => addSvcRow(s.name || '', s.price > 0 ? String(s.price) : ''));
 
   calcTotals();
 }
@@ -1576,9 +1671,9 @@ function reopenKP(id) {
 /* ════════════════════════════════════════════════════════════════════════════
    PRINT
 ════════════════════════════════════════════════════════════════════════════ */
-function doPrint() {
+async function doPrint() {
   if (!validateKP()) return;
-  saveKPToJournal();   // сохраняем в журнал перед печатью
+  await saveKPToJournal();
   updatePrint();
   window.print();
 }
@@ -1587,15 +1682,17 @@ function doPrint() {
    INIT
 ════════════════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  // Установим сегодняшнюю дату
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('cl-date').value = today;
+  // Сегодняшняя дата
+  document.getElementById('cl-date').value = new Date().toISOString().split('T')[0];
 
-  // Сбросить подсветку при вводе в клиентские поля
+  // Сбрасывать подсветку при вводе
   ['cl-name','cl-phone','cl-date'].forEach(id => {
-    document.getElementById(id).addEventListener('input', clearValidation);
+    document.getElementById(id).addEventListener('input',  clearValidation);
     document.getElementById(id).addEventListener('change', clearValidation);
   });
+
+  // Запуск авторизации Supabase
+  initAuth();
 });
 </script>
 </body>
