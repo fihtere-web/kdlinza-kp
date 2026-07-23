@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КДлинза — Конструктор КП</title>
+<style>
+/* ═══ RESET ════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; font-size: 14px; color: #1A2B3C; background: #EBF5FB; }
+
+/* ═══ BRAND TOKENS ══════════════════════════════════════════════════════════ */
+:root {
+  --blue:    #008DD2;
+  --blue-dk: #005C8A;
+  --blue-lt: #EBF7FD;
+  --dark:    #1A2B3C;
+  --gray:    #777;
+  --border:  #C4DCF0;
+  --alt:     #F4F9FD;
+  --radius:  8px;
+}
+
+/* ═══ APP HEADER ════════════════════════════════════════════════════════════ */
+.app-header {
+  background: var(--blue);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  position: sticky; top: 0; z-index: 100;
+}
+.app-header .logo { font-size: 17px; font-weight: 700; color: white; letter-spacing: .5px; }
+.app-header .logo span { opacity: .7; font-weight: 400; font-size: 13px; margin-left: 10px; }
+.btn-print-top {
+  background: white;
+  color: var(--blue);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: opacity .15s;
+}
+.btn-print-top:hover { opacity: .9; }
+
+/* ═══ LAYOUT ════════════════════════════════════════════════════════════════ */
+.app-body {
+  max-width: 1120px;
+  margin: 24px auto 40px;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 20px;
+  align-items: start;
+}
+.form-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ═══ CARDS ═════════════════════════════════════════════════════════════════ */
+.card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 10px rgba(0,141,210,.07);
+  overflow: hidden;
+}
+.card-head {
+  background: var(--blue);
+  color: white;
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-head.dark { background: var(--blue-dk); }
+.badge-num {
+  width: 26px; height: 26px;
+  background: rgba(255,255,255,.2);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+}
+.card-head h2 { font-size: 13px; font-weight: 700; letter-spacing: .5px; flex: 1; }
+.card-body { padding: 16px; }
+
+/* ═══ CLIENT FIELDS ═════════════════════════════════════════════════════════ */
+.client-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 160px;
+  gap: 14px;
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 5px;
+}
+.field input, .field select {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: Arial, sans-serif;
+  color: var(--dark);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0,141,210,.12);
+}
+
+/* ═══ ITEM TABLE ════════════════════════════════════════════════════════════ */
+.tbl-wrap { overflow-x: auto; }
+table.items { width: 100%; border-collapse: collapse; min-width: 560px; }
+table.items th {
+  background: var(--blue);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 7px;
+  text-align: center;
+  white-space: nowrap;
+}
+table.items th.left { text-align: left; }
+table.items td {
+  padding: 4px 4px;
+  border-bottom: 1px solid #E8F3FA;
+  vertical-align: middle;
+}
+table.items tbody tr:nth-child(even) td { background: var(--alt); }
+table.items tbody tr:nth-child(even) td input { background: transparent; }
+table.items tbody tr:nth-child(even) td select { background: transparent; }
+table.items td select {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 5px;
+  padding: 5px 6px;
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  color: var(--dark);
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+  appearance: auto;
+}
+table.items td select:focus {
+  border-color: var(--blue);
+  background: white;
+  box-shadow: 0 0 0 2px rgba(0,141,210,.1);
+}
+table.items td input {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 5px;
+  padding: 6px 7px;
+  font-size: 13px;
+  font-family: Arial, sans-serif;
+  color: var(--dark);
+  background: transparent;
+  outline: none;
+  transition: border-color .12s, background .12s;
+}
+table.items td input:focus {
+  border-color: var(--blue);
+  background: white;
+  box-shadow: 0 0 0 2px rgba(0,141,210,.1);
+}
+table.items td input[type="number"] { text-align: right; }
+table.items .td-auto {
+  text-align: right;
+  font-size: 13px;
+  color: var(--gray);
+  padding: 6px 9px;
+  white-space: nowrap;
+}
+table.items .td-disc { color: var(--blue); font-weight: 700; }
+table.items .td-total { font-weight: 700; color: var(--dark); }
+table.items .td-del { width: 28px; text-align: center; }
+.btn-del {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+}
+.btn-del:hover { color: #e55; background: #fff0f0; }
+
+/* Auto-service rows */
+.auto-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--blue-lt);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.svc-name-wrap { display: flex; align-items: center; gap: 0; }
+.svc-name-auto {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13px;
+  padding: 6px 7px;
+  color: var(--dark);
+  cursor: default !important;
+  outline: none;
+  min-width: 0;
+  font-family: Arial, sans-serif;
+}
+.price-auto {
+  background: var(--blue-lt) !important;
+  color: var(--blue) !important;
+  font-weight: 700 !important;
+  cursor: default !important;
+  text-align: right;
+  border-color: var(--border) !important;
+}
+.btn-svc-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.btn-svc-wrap .btn-add-row { margin-top: 0; }
+
+.btn-add-row {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px dashed var(--blue);
+  background: none;
+  color: var(--blue);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .12s;
+}
+.btn-add-row:hover { background: var(--blue-lt); }
+
+/* ═══ VALIDATION ════════════════════════════════════════════════════════════ */
+.field-error {
+  border-color: #E04040 !important;
+  box-shadow: 0 0 0 3px rgba(220,50,50,.12) !important;
+  background: #fff5f5 !important;
+}
+.card-error .card-head {
+  background: #C0392B !important;
+}
+.val-toast {
+  display: none;
+  position: fixed;
+  top: 66px; right: 16px;
+  background: #C0392B;
+  color: white;
+  border-radius: 8px;
+  padding: 13px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  box-shadow: 0 4px 24px rgba(0,0,0,.25);
+  z-index: 200;
+  max-width: 300px;
+  animation: toastIn .2s ease;
+}
+.val-toast.show { display: block; }
+.val-toast strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.val-toast ul { margin: 0; padding-left: 16px; }
+.val-toast .toast-close { float: right; cursor: pointer; opacity: .8; font-size: 16px; margin: -2px -4px 0 10px; }
+@keyframes toastIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:none; } }
+
+/* ═══ TOTALS SIDEBAR ════════════════════════════════════════════════════════ */
+.totals-panel { position: sticky; top: 76px; }
+.totals-head {
+  background: var(--blue-dk);
+  color: white;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .6px;
+}
+.totals-body { padding: 16px 16px 8px; }
+.t-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid #EEF6FB;
+}
+.t-line:last-child { border-bottom: none; }
+.t-line .t-lbl { font-size: 12px; color: var(--gray); }
+.t-line .t-val { font-size: 14px; font-weight: 600; color: var(--dark); }
+.t-line .t-val.disc { color: var(--blue); }
+.total-main {
+  margin: 14px 16px 16px;
+  background: var(--blue);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.total-main .t-lbl { color: rgba(255,255,255,.8); font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+.total-main .t-val { color: white; font-size: 26px; font-weight: 700; }
+.btn-print {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  margin: 0 16px 16px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-print:hover { background: var(--blue-dk); }
+
+/* ═══ NOTE card ═════════════════════════════════════════════════════════════ */
+.note-card { background: #FFF8E1; border-left: 4px solid #E5A000; padding: 10px 14px;
+  border-radius: 0 6px 6px 0; font-size: 12px; color: #7a5800; line-height: 1.5; margin-top: 4px; }
+
+/* ═══ ЖУРНАЛ КП ═════════════════════════════════════════════════════════════ */
+.journal-view { display: none; }
+.journal-view.active { display: block; }
+.journal-header {
+  background: var(--blue);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  position: sticky; top: 0; z-index: 100;
+}
+.journal-header .jh-title { font-size: 16px; font-weight: 700; color: white; }
+.btn-new-kp {
+  background: white;
+  color: var(--blue);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: opacity .15s;
+}
+.btn-new-kp:hover { opacity: .9; }
+.journal-body {
+  max-width: 1000px;
+  margin: 28px auto 40px;
+  padding: 0 16px;
+}
+.journal-empty {
+  text-align: center;
+  color: var(--gray);
+  font-size: 14px;
+  margin-top: 60px;
+}
+.journal-empty div { font-size: 40px; margin-bottom: 12px; }
+.jnl-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,141,210,.07);
+}
+.jnl-table th {
+  background: var(--blue);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 10px 14px;
+  text-align: left;
+  letter-spacing: .4px;
+}
+.jnl-table th.right { text-align: right; }
+.jnl-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #EEF6FB;
+  font-size: 13px;
+  color: var(--dark);
+  vertical-align: middle;
+}
+.jnl-table tr:last-child td { border-bottom: none; }
+.jnl-table tbody tr:hover td { background: var(--blue-lt); }
+.jnl-total { font-weight: 700; color: var(--blue); text-align: right; }
+.jnl-date { color: var(--gray); font-size: 12px; }
+.jnl-actions { text-align: right; white-space: nowrap; }
+.btn-jnl-open {
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: background .12s;
+}
+.btn-jnl-open:hover { background: var(--blue-dk); }
+.btn-jnl-del {
+  background: none;
+  color: #ccc;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all .12s;
+}
+.btn-jnl-del:hover { color: #e44; border-color: #e44; background: #fff0f0; }
+.btn-jnl-hdr {
+  background: rgba(255,255,255,.15);
+  color: white;
+  border: 1.5px solid rgba(255,255,255,.4);
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background .12s;
+}
+.btn-jnl-hdr:hover { background: rgba(255,255,255,.25); }
+
+/* ══════════════════════════════════════════════════════════════════════════ */
+/*  PRINT КП                                                                  */
+/* ══════════════════════════════════════════════════════════════════════════ */
+.print-kp { display: none; }
+
+@media print {
+  @page { size: A4 portrait; margin: 13mm 14mm; }
+
+  /* Force backgrounds to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body { background: white !important; font-size: 9.5pt; margin: 0; padding: 0; }
+  .screen-only { display: none !important; }
+  .print-kp {
+    display: block !important;
+    font-family: Arial, sans-serif;
+    color: #1A2B3C;
+    width: 100%;
+  }
+
+  /* ── Banner ──────────────────────────────────────────────────────────── */
+  .kp-banner {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    background: #008DD2 !important;
+    margin-bottom: 9pt;
+  }
+  .kp-banner tr { display: table-row; }
+  .kp-banner td {
+    display: table-cell;
+    padding: 9pt 11pt;
+    vertical-align: middle;
+    background: #008DD2 !important;
+  }
+  .kp-banner .b-left {
+    color: rgba(255,255,255,.85);
+    font-size: 7.5pt;
+    line-height: 1.7;
+    width: 34%;
+  }
+  .kp-banner .b-left strong {
+    color: #fff !important;
+    font-size: 10.5pt;
+    display: block;
+    margin-bottom: 2pt;
+  }
+  .kp-banner .b-center {
+    text-align: center;
+    width: 32%;
+  }
+  .kp-banner .b-center .logo-txt {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #fff !important;
+    letter-spacing: 1pt;
+  }
+  .kp-banner .b-center .logo-sub {
+    font-size: 7pt;
+    color: rgba(255,255,255,.75) !important;
+    margin-top: 2pt;
+  }
+  .kp-banner .b-right {
+    text-align: right;
+    color: rgba(255,255,255,.85) !important;
+    font-size: 7.5pt;
+    line-height: 1.7;
+    width: 34%;
+  }
+  .kp-banner .b-right strong {
+    color: #fff !important;
+    font-size: 12.5pt;
+    display: block;
+  }
+
+  /* ── Title ───────────────────────────────────────────────────────────── */
+  .kp-title {
+    text-align: center;
+    font-size: 14pt;
+    font-weight: 700;
+    color: #008DD2 !important;
+    margin: 8pt 0 10pt;
+    letter-spacing: .5pt;
+  }
+
+  /* ── Client box ──────────────────────────────────────────────────────── */
+  .kp-client {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    border: 2pt solid #008DD2 !important;
+    margin-bottom: 11pt;
+  }
+  .kp-client tr { display: table-row; }
+  .kp-client td {
+    display: table-cell;
+    padding: 6pt 10pt;
+    width: 33.3%;
+    border-right: 1pt solid #008DD2 !important;
+  }
+  .kp-client td:last-child { border-right: none !important; }
+  .kp-client .cf-lbl {
+    font-size: 7pt;
+    font-weight: 700;
+    color: #008DD2 !important;
+    text-transform: uppercase;
+    letter-spacing: .6pt;
+    display: block;
+    margin-bottom: 3pt;
+  }
+  .kp-client .cf-val { font-size: 10pt; color: #1A2B3C; }
+
+  /* ── Section header ──────────────────────────────────────────────────── */
+  .kp-sec-hdr {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 2pt solid #008DD2 !important;
+    margin-bottom: 5pt;
+  }
+  .kp-sec-hdr-inner { display: table-row; }
+  .kp-sec-badge {
+    display: table-cell;
+    background: #008DD2 !important;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 10.5pt;
+    padding: 3pt 7pt;
+    width: 22pt;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .kp-sec-lbl {
+    display: table-cell;
+    padding: 3pt 8pt;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #1A2B3C;
+    vertical-align: middle;
+  }
+
+  /* ── Data tables ─────────────────────────────────────────────────────── */
+  .kp-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10pt;
+    font-size: 8.5pt;
+  }
+  .kp-tbl th {
+    background: #008DD2 !important;
+    color: #fff !important;
+    padding: 5pt 5pt;
+    font-size: 8pt;
+    font-weight: 700;
+    text-align: center;
+  }
+  .kp-tbl th.left { text-align: left; }
+  .kp-tbl td {
+    padding: 4.5pt 5pt;
+    border-bottom: .5pt solid #C8DFF0 !important;
+    vertical-align: middle;
+  }
+  .kp-tbl tr:nth-child(even) td { background: #F4F9FD !important; }
+  .kp-tbl .right { text-align: right; }
+  .kp-tbl .center { text-align: center; }
+  .kp-tbl .disc-pct { color: #008DD2 !important; font-weight: 700; }
+  .kp-tbl .total-col { font-weight: 700; }
+
+  /* ── Summary ─────────────────────────────────────────────────────────── */
+  .kp-summary {
+    display: table;
+    width: 50%;
+    margin: 0 0 8pt auto;   /* right-aligned block */
+    border-collapse: collapse;
+  }
+  .kp-summary tr { display: table-row; }
+  .kp-summary td { display: table-cell; padding: 2.5pt 0; }
+  .kp-sum-lbl {
+    text-align: right;
+    color: #555;
+    font-size: 9pt;
+    padding-right: 10pt;
+    width: 60%;
+  }
+  .kp-sum-val {
+    text-align: right;
+    font-size: 9pt;
+    color: #1A2B3C;
+    white-space: nowrap;
+    width: 40%;
+  }
+  .kp-sum-val.disc-val { color: #008DD2 !important; }
+  .kp-total-row td {
+    background: #008DD2 !important;
+    padding-top: 5pt;
+    padding-bottom: 5pt;
+  }
+  .kp-total-row .kp-sum-lbl {
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 9.5pt;
+    padding-left: 8pt;
+    border-radius: 0;
+  }
+  .kp-total-row .kp-sum-val {
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 13pt;
+    padding-right: 8pt;
+  }
+
+  /* ── Validity notice ──────────────────────────────────────────────────── */
+  .kp-validity {
+    background: #FFF8E1 !important;
+    border-left: 3.5pt solid #E5A000 !important;
+    padding: 5pt 9pt;
+    font-size: 8pt;
+    color: #7a5800 !important;
+    font-style: italic;
+    margin: 10pt 0 8pt;
+  }
+
+  /* ── Footer ───────────────────────────────────────────────────────────── */
+  .kp-footer {
+    background: #005C8A !important;
+    color: rgba(255,255,255,.85) !important;
+    font-size: 7.5pt;
+    text-align: center;
+    padding: 6pt 10pt;
+    margin-top: 4pt;
+  }
+
+  .no-print-page-break { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  SCREEN: FORM INTERFACE                                                  -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="screen-only">
+
+  <!-- Validation toast -->
+  <div class="val-toast" id="val-toast">
+    <span class="toast-close" onclick="document.getElementById('val-toast').classList.remove('show')">✕</span>
+    <strong>⚠ Заполните обязательные поля:</strong>
+    <ul id="val-list"></ul>
+  </div>
+
+  <header class="app-header">
+    <div class="logo">KDLINZA.RU <span>Конструктор коммерческого предложения</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-jnl-hdr" onclick="openJournal()">📋 Журнал КП</button>
+      <button class="btn-print-top" onclick="doPrint()">🖨️ Распечатать КП</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- ── ФОРМА СЛЕВА ─────────────────────────────────────────────────── -->
+    <div class="form-col">
+
+      <!-- Клиент -->
+      <div class="card client-card">
+        <div class="card-head dark">
+          <h2>ИНФОРМАЦИЯ О КЛИЕНТЕ</h2>
+        </div>
+        <div class="card-body">
+          <div class="client-grid">
+            <div class="field">
+              <label>ФИО клиента</label>
+              <input type="text" id="cl-name" placeholder="Иванов Иван Иванович" oninput="updatePrint()">
+            </div>
+            <div class="field">
+              <label>Телефон</label>
+              <input type="text" id="cl-phone" placeholder="+7 (900) 000-00-00" oninput="updatePrint()">
+            </div>
+            <div class="field">
+              <label>Дата КП</label>
+              <input type="date" id="cl-date" oninput="updatePrint()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── СЕКЦИЯ 1: ОПРАВА ──────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-head">
+          <div class="badge-num">1</div>
+          <h2>ОПРАВА</h2>
+        </div>
+        <div class="card-body">
+          <div class="tbl-wrap">
+            <table class="items" id="tbl-frame">
+              <thead>
+                <tr>
+                  <th class="left" style="width:38%">Наименование оправы</th>
+                  <th style="width:12%">Цена, ₽</th>
+                  <th style="width:9%">Скидка, %</th>
+                  <th style="width:12%">Скидка, ₽</th>
+                  <th style="width:13%">Итого, ₽</th>
+                  <th style="width:5%"></th>
+                </tr>
+              </thead>
+              <tbody id="frame-rows"></tbody>
+            </table>
+          </div>
+          <button class="btn-add-row" onclick="addFrameRow()">+ Добавить оправу</button>
+          <button class="btn-add-row btn-client-frame" onclick="addFrameRow('Оправа клиента (1 шт.)', '0', '0')" style="margin-left:8px; border-style:solid; background:var(--blue-lt);">👓 Оправа клиента</button>
+        </div>
+      </div>
+
+      <!-- ── СЕКЦИЯ 2: ЛИНЗЫ ───────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-head">
+          <div class="badge-num">2</div>
+          <h2>ОЧКОВЫЕ ЛИНЗЫ</h2>
+        </div>
+        <div class="card-body">
+          <div class="tbl-wrap">
+            <table class="items" id="tbl-lens" style="min-width:720px;">
+              <thead>
+                <tr>
+                  <th class="left" style="width:18%">Тип линз</th>
+                  <th class="left" style="width:11%">Бренд</th>
+                  <th style="width:9%">Положение</th>
+                  <th class="left" style="width:17%">Наименование</th>
+                  <th style="width:9%">Цена, ₽</th>
+                  <th style="width:7%">Скидка, %</th>
+                  <th style="width:9%">Скидка, ₽</th>
+                  <th style="width:9%">Итого, ₽</th>
+                  <th style="width:4%"></th>
+                </tr>
+              </thead>
+              <tbody id="lens-rows"></tbody>
+            </table>
+          </div>
+          <button class="btn-add-row" onclick="addLensRow()">+ Добавить линзы</button>
+        </div>
+      </div>
+
+      <!-- ── СЕКЦИЯ 3: УСЛУГИ ──────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-head">
+          <div class="badge-num">3</div>
+          <h2>УСЛУГИ</h2>
+        </div>
+        <div class="card-body">
+          <div class="tbl-wrap">
+            <table class="items" id="tbl-svc" style="min-width:400px;">
+              <thead>
+                <tr>
+                  <th class="left" style="width:67%">Услуга</th>
+                  <th style="width:27%">Стоимость, ₽</th>
+                  <th style="width:6%"></th>
+                </tr>
+              </thead>
+              <tbody id="svc-rows"></tbody>
+            </table>
+          </div>
+          <div class="btn-svc-wrap">
+            <button class="btn-add-row" onclick="addSvcRow()">+ Добавить услугу</button>
+            <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addIzgRow()">⚙️ Изготовление очков</button>
+            <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addDsoRow()">🔧 Добавить ДСО</button>
+            <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addSvcRow('Подбор оправы специалистом','0')">👓 Подбор оправы</button>
+            <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addSvcRow('Проверка зрения оптометристом/врачём','0')">👁️ Проверка зрения</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Примечание -->
+      <div class="note-card">
+        ⚠️ Цены в коммерческом предложении действительны не более <strong>3 (трёх) календарных дней</strong> с даты выставления.
+      </div>
+
+    </div><!-- /form-col -->
+
+    <!-- ── ИТОГИ СПРАВА ───────────────────────────────────────────────── -->
+    <div class="totals-panel">
+      <div class="card totals-card">
+        <div class="totals-head">ИТОГИ</div>
+        <div class="totals-body">
+          <div class="t-line">
+            <span class="t-lbl">Итого до скидки</span>
+            <span class="t-val" id="tot-before">0 ₽</span>
+          </div>
+          <div class="t-line">
+            <span class="t-lbl">Сумма скидки</span>
+            <span class="t-val disc" id="tot-disc">0 ₽</span>
+          </div>
+          <div class="t-line">
+            <span class="t-lbl">Услуги</span>
+            <span class="t-val" id="tot-svc">0 ₽</span>
+          </div>
+        </div>
+        <div class="total-main">
+          <div class="t-lbl">ИТОГО К ОПЛАТЕ</div>
+          <div class="t-val" id="tot-final">0 ₽</div>
+        </div>
+        <button class="btn-print" onclick="doPrint()">🖨️ Распечатать КП</button>
+      </div>
+    </div>
+
+  </div><!-- /app-body -->
+</div><!-- /screen-only -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  ЖУРНАЛ КП                                                               -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="journal-view screen-only" id="journal-view">
+  <div class="journal-header">
+    <div class="jh-title">📋 Журнал коммерческих предложений</div>
+    <button class="btn-new-kp" onclick="closeJournal()">✏️ Создать коммерческое предложение</button>
+  </div>
+  <div class="journal-body">
+    <div id="journal-content"><!-- заполняется JS --></div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  PRINT: КП OUTPUT  (hidden on screen, shown only when printing)         -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="print-kp" id="print-kp">
+
+  <!-- Баннер -->
+  <table class="kp-banner" cellspacing="0">
+    <tr>
+      <td class="b-left">
+        <strong>Оптика KDLINZA.RU</strong>
+        ТРЦ «Балтия Молл»<br>
+        Калининградская обл., м.о. Гурьевский,<br>
+        Приморское кольцо, д. 2
+      </td>
+      <td class="b-center">
+        <div class="logo-txt">KDLINZA.RU</div>
+        <div class="logo-sub">Оптика · Линзы · Аксессуары</div>
+      </td>
+      <td class="b-right">
+        <strong>+7 (900) 348-97-19</strong>
+        kdlinza.ru
+      </td>
+    </tr>
+  </table>
+
+  <!-- Заголовок -->
+  <div class="kp-title">КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</div>
+
+  <!-- Клиент -->
+  <table class="kp-client" cellspacing="0">
+    <tr>
+      <td>
+        <span class="cf-lbl">ФИО клиента</span>
+        <span class="cf-val" id="pr-name">—</span>
+      </td>
+      <td>
+        <span class="cf-lbl">Телефон</span>
+        <span class="cf-val" id="pr-phone">—</span>
+      </td>
+      <td>
+        <span class="cf-lbl">Дата КП</span>
+        <span class="cf-val" id="pr-date">—</span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Секция 1: ОПРАВА -->
+  <div id="pr-frame-sec">
+    <div class="kp-sec-hdr"><div class="kp-sec-hdr-inner">
+      <div class="kp-sec-badge">1</div>
+      <div class="kp-sec-lbl">ОПРАВА</div>
+    </div></div>
+    <table class="kp-tbl" id="pr-frame-tbl">
+      <thead>
+        <tr>
+          <th class="left" style="width:40%">Наименование оправы</th>
+          <th style="width:13%">Цена, ₽</th>
+          <th style="width:10%">Скидка, %</th>
+          <th style="width:13%">Скидка, ₽</th>
+          <th style="width:13%">Итого, ₽</th>
+        </tr>
+      </thead>
+      <tbody id="pr-frame-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Секция 2: ЛИНЗЫ -->
+  <div id="pr-lens-sec">
+    <div class="kp-sec-hdr"><div class="kp-sec-hdr-inner">
+      <div class="kp-sec-badge">2</div>
+      <div class="kp-sec-lbl">ОЧКОВЫЕ ЛИНЗЫ</div>
+    </div></div>
+    <table class="kp-tbl" id="pr-lens-tbl">
+      <thead>
+        <tr>
+          <th class="left" style="width:17%">Тип линз</th>
+          <th class="left" style="width:10%">Бренд</th>
+          <th style="width:9%">Положение</th>
+          <th class="left" style="width:16%">Наименование</th>
+          <th style="width:9%">Цена, ₽</th>
+          <th style="width:8%">Скидка, %</th>
+          <th style="width:10%">Скидка, ₽</th>
+          <th style="width:10%">Итого, ₽</th>
+        </tr>
+      </thead>
+      <tbody id="pr-lens-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Секция 3: УСЛУГИ -->
+  <div id="pr-svc-sec">
+    <div class="kp-sec-hdr"><div class="kp-sec-hdr-inner">
+      <div class="kp-sec-badge">3</div>
+      <div class="kp-sec-lbl">УСЛУГИ</div>
+    </div></div>
+    <table class="kp-tbl" id="pr-svc-tbl">
+      <thead>
+        <tr>
+          <th class="left" style="width:80%">Услуга</th>
+          <th style="width:20%">Стоимость, ₽</th>
+        </tr>
+      </thead>
+      <tbody id="pr-svc-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Итоги -->
+  <table class="kp-summary" cellspacing="0">
+    <tr>
+      <td class="kp-sum-lbl">Итого до скидки:</td>
+      <td class="kp-sum-val" id="pr-tot-before">0 ₽</td>
+    </tr>
+    <tr>
+      <td class="kp-sum-lbl">Сумма скидки:</td>
+      <td class="kp-sum-val disc-val" id="pr-tot-disc">0 ₽</td>
+    </tr>
+    <tr class="kp-total-row">
+      <td class="kp-sum-lbl">ИТОГО К ОПЛАТЕ:</td>
+      <td class="kp-sum-val" id="pr-tot-final">0 ₽</td>
+    </tr>
+  </table>
+
+  <!-- Примечание -->
+  <div class="kp-validity">
+    ⚠ &nbsp;Цены действительны не более 3 (трёх) календарных дней с даты выставления КП.
+  </div>
+
+  <!-- Футер -->
+  <div class="kp-footer">
+    Оптика KDLINZA.RU &nbsp;•&nbsp; ТРЦ «Балтия Молл» &nbsp;•&nbsp;
+    Калининградская обл., м.о. Гурьевский, Приморское кольцо, д. 2 &nbsp;•&nbsp;
+    +7 (900) 348-97-19
+  </div>
+
+</div><!-- /print-kp -->
+
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════════════════════════ */
+let rowId = 0;
+
+function fmt(n) {
+  return n.toLocaleString('ru-RU') + ' ₽';
+}
+function fmtDisc(n) {
+  return (n < 0 ? '− ' : '') + Math.abs(n).toLocaleString('ru-RU') + ' ₽';
+}
+function parseNum(s) {
+  return parseFloat((s || '').replace(/\s/g,'').replace(',','.')) || 0;
+}
+// Thousands formatting for editable price inputs
+function formatPrice(el) {
+  const v = parseNum(el.value);
+  el.value = v > 0 ? v.toLocaleString('ru-RU') : '';
+}
+function unformatPrice(el) {
+  const v = parseNum(el.value);
+  el.value = v > 0 ? String(v) : '';
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ADD ROWS
+════════════════════════════════════════════════════════════════════════════ */
+function addFrameRow(name='', price='', disc='') {
+  const id = ++rowId;
+  const fmtP = parseNum(price) > 0 ? parseNum(price).toLocaleString('ru-RU') : '';
+  const tbody = document.getElementById('frame-rows');
+  const tr = document.createElement('tr');
+  tr.id = 'fr-' + id;
+  tr.innerHTML = `
+    <td><input type="text" placeholder="Название оправы, артикул" value="${name}" oninput="calcRow(this)"></td>
+    <td><input type="text" placeholder="0" value="${fmtP}" oninput="calcRow(this)" onblur="formatPrice(this)" onfocus="unformatPrice(this)" class="price-in" style="text-align:right;"></td>
+    <td><input type="number" placeholder="0" min="0" max="100" value="${disc}" oninput="calcRow(this)" class="disc-in"></td>
+    <td class="td-auto td-disc" id="fr-disc-${id}">—</td>
+    <td class="td-auto td-total" id="fr-total-${id}">—</td>
+    <td class="td-del"><button class="btn-del" onclick="delRow('fr-${id}')">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  if (price) calcRow(tr.querySelector('.price-in'));
+}
+
+const LENS_TYPES  = ['Очковые линзы', 'Очковые рецептурные линзы'];
+const LENS_BRANDS = ['GENEX', 'Neolook', 'Nikon', 'RENZU', 'Essilor Stellest', 'YOUNGER'];
+const LENS_POS    = ['OD', 'OS', 'OD и OS'];
+
+function selOpts(arr, selected) {
+  return '<option value="">—</option>' +
+    arr.map(v => `<option value="${v}"${v === selected ? ' selected' : ''}>${v}</option>`).join('');
+}
+
+function addLensRow(type='', brand='', pos='', name='', price='', disc='') {
+  const id = ++rowId;
+  const tbody = document.getElementById('lens-rows');
+  const tr = document.createElement('tr');
+  tr.id = 'lr-' + id;
+  tr.innerHTML = `
+    <td><select class="type-sel" onchange="calcRow(this)">${selOpts(LENS_TYPES, type)}</select></td>
+    <td><select class="brand-sel" onchange="calcRow(this)">${selOpts(LENS_BRANDS, brand)}</select></td>
+    <td><select class="pos-sel" onchange="calcRow(this)" style="text-align:center;">${selOpts(LENS_POS, pos)}</select></td>
+    <td><input type="text" placeholder="Наименование" value="${name}" oninput="calcRow(this)"></td>
+    <td><input type="text" placeholder="0" value="${parseNum(price) > 0 ? parseNum(price).toLocaleString('ru-RU') : ''}" oninput="calcRow(this)" onblur="formatPrice(this)" onfocus="unformatPrice(this)" class="price-in" style="text-align:right;"></td>
+    <td><input type="number" placeholder="0" min="0" max="100" value="${disc}" oninput="calcRow(this)" class="disc-in"></td>
+    <td class="td-auto td-disc" id="lr-disc-${id}">—</td>
+    <td class="td-auto td-total" id="lr-total-${id}">—</td>
+    <td class="td-del"><button class="btn-del" onclick="delRow('lr-${id}')">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  if (price) calcRow(tr.querySelector('.price-in'));
+}
+
+/* ── AUTO-SERVICE helpers ─────────────────────────────────────────────────── */
+function getSvcBase() {
+  let frameTotal = 0, lensTotal = 0, hasClientFrame = false;
+  document.querySelectorAll('#frame-rows tr').forEach(tr => {
+    const nm = tr.querySelector('input[type="text"]')?.value || '';
+    const pr = parseNum(tr.querySelector('.price-in')?.value);
+    frameTotal += pr;
+    if (nm.toLowerCase().includes('оправа клиента')) hasClientFrame = true;
+  });
+  document.querySelectorAll('#lens-rows tr').forEach(tr => {
+    lensTotal += parseNum(tr.querySelector('.price-in')?.value);
+  });
+  return { frameTotal, lensTotal, hasClientFrame, allTotal: frameTotal + lensTotal };
+}
+
+function recalcAutoSvc() {
+  const { frameTotal, lensTotal, hasClientFrame, allTotal } = getSvcBase();
+
+  // Изготовление: 12% от всего ИЛИ 20% от линз (если оправа клиента)
+  document.querySelectorAll('tr.auto-izg').forEach(tr => {
+    const pct  = hasClientFrame ? 0.20 : 0.12;
+    const base = hasClientFrame ? lensTotal : allTotal;
+    const val  = Math.round(base * pct);
+    const inp  = tr.querySelector('.price-in');
+    if (inp) inp.value = val.toLocaleString('ru-RU');
+    const tip = tr.querySelector('.auto-tip');
+    if (tip) tip.title = hasClientFrame
+      ? `20% от стоимости линз (${lensTotal.toLocaleString('ru-RU')} ₽)`
+      : `12% от суммы оправы + линзы (${allTotal.toLocaleString('ru-RU')} ₽)`;
+  });
+
+  // ДСО: 5% от оправа + линзы
+  document.querySelectorAll('tr.auto-dso').forEach(tr => {
+    const val = Math.round(allTotal * 0.05);
+    const inp = tr.querySelector('.price-in');
+    if (inp) inp.value = val.toLocaleString('ru-RU');
+    const tip = tr.querySelector('.auto-tip');
+    if (tip) tip.title = `5% от стоимости оправы + линзы (${allTotal.toLocaleString('ru-RU')} ₽)`;
+  });
+}
+
+function makeAutoSvcRow(cls, label) {
+  const id = ++rowId;
+  const tbody = document.getElementById('svc-rows');
+  const tr = document.createElement('tr');
+  tr.id = 'sr-' + id;
+  tr.className = cls;
+  tr.innerHTML = `
+    <td>
+      <div class="svc-name-wrap">
+        <input type="text" class="svc-name-auto" value="${label}" readonly>
+        <span class="auto-badge auto-tip" title="">авто</span>
+      </div>
+    </td>
+    <td><input type="text" class="price-in price-auto" value="0" readonly style="text-align:right;"></td>
+    <td class="td-del"><button class="btn-del" onclick="delRow('sr-${id}')">×</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function addIzgRow() {
+  makeAutoSvcRow('auto-izg', 'Изготовление очков');
+  recalcAutoSvc();
+  calcTotals();
+}
+
+function addDsoRow() {
+  makeAutoSvcRow('auto-dso', 'Дополнительное сервисное обслуживание');
+  recalcAutoSvc();
+  calcTotals();
+}
+
+function addSvcRow(name='', price='') {
+  const id = ++rowId;
+  const tbody = document.getElementById('svc-rows');
+  const tr = document.createElement('tr');
+  tr.id = 'sr-' + id;
+  tr.innerHTML = `
+    <td><input type="text" placeholder="Название услуги" value="${name}" oninput="calcTotals()"></td>
+    <td><input type="text" placeholder="0" value="${parseNum(price) > 0 ? parseNum(price).toLocaleString('ru-RU') : ''}" oninput="calcTotals()" onblur="formatPrice(this)" onfocus="unformatPrice(this)" class="price-in" style="text-align:right;"></td>
+    <td class="td-del"><button class="btn-del" onclick="delRow('sr-${id}')">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  calcTotals();
+}
+
+function delRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  calcTotals();
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CALCULATIONS
+════════════════════════════════════════════════════════════════════════════ */
+function calcRow(input) {
+  const tr = input.closest('tr');
+  const priceIn = tr.querySelector('.price-in');
+  const discIn  = tr.querySelector('.disc-in');
+  const price = parseNum(priceIn ? priceIn.value : '0');
+  const discPct = parseNum(discIn ? discIn.value : '0');
+  const discRub = Math.round(price * discPct / 100);
+  const total   = price - discRub;
+
+  // Frame row IDs: fr-disc-N, fr-total-N or lr-disc-N, lr-total-N
+  const idBase = tr.id; // e.g. 'fr-42' or 'lr-7'
+  const prefix = idBase.startsWith('fr') ? 'fr' : 'lr';
+  const num = idBase.split('-')[1];
+
+  const discCell  = document.getElementById(`${prefix}-disc-${num}`);
+  const totalCell = document.getElementById(`${prefix}-total-${num}`);
+
+  if (discCell)  discCell.textContent  = discPct > 0 ? fmtDisc(-discRub) : '—';
+  if (totalCell) totalCell.textContent = price > 0 ? fmt(total) : '—';
+
+  calcTotals();
+}
+
+function calcTotals() {
+  // Пересчитываем авто-услуги перед суммированием
+  recalcAutoSvc();
+
+  let sumBefore = 0;  // total of all prices (no discount)
+  let sumDisc   = 0;  // total discount (positive number)
+  let sumSvc    = 0;  // services (no discount)
+
+  // Frame rows
+  document.querySelectorAll('#frame-rows tr').forEach(tr => {
+    const price   = parseNum(tr.querySelector('.price-in')?.value);
+    const discPct = parseNum(tr.querySelector('.disc-in')?.value);
+    const discRub = Math.round(price * discPct / 100);
+    sumBefore += price;
+    sumDisc   += discRub;
+  });
+
+  // Lens rows
+  document.querySelectorAll('#lens-rows tr').forEach(tr => {
+    const price   = parseNum(tr.querySelector('.price-in')?.value);
+    const discPct = parseNum(tr.querySelector('.disc-in')?.value);
+    const discRub = Math.round(price * discPct / 100);
+    sumBefore += price;
+    sumDisc   += discRub;
+  });
+
+  // Service rows (no discount)
+  document.querySelectorAll('#svc-rows tr').forEach(tr => {
+    sumSvc += parseNum(tr.querySelector('.price-in')?.value);
+  });
+
+  const grandTotal = sumBefore - sumDisc + sumSvc;
+
+  document.getElementById('tot-before').textContent = fmt(sumBefore + sumSvc);
+  document.getElementById('tot-disc').textContent   = sumDisc > 0 ? fmtDisc(-sumDisc) : '0 ₽';
+  document.getElementById('tot-svc').textContent    = fmt(sumSvc);
+  document.getElementById('tot-final').textContent  = fmt(grandTotal);
+
+  updatePrint();
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   UPDATE PRINT КП
+════════════════════════════════════════════════════════════════════════════ */
+function updatePrint() {
+  // Client info
+  const name  = document.getElementById('cl-name').value  || '—';
+  const phone = document.getElementById('cl-phone').value || '—';
+  const dateVal = document.getElementById('cl-date').value;
+  let dateStr = '—';
+  if (dateVal) {
+    const [y, m, d] = dateVal.split('-');
+    dateStr = `${d}.${m}.${y}`;
+  }
+  document.getElementById('pr-name').textContent  = name;
+  document.getElementById('pr-phone').textContent = phone;
+  document.getElementById('pr-date').textContent  = dateStr;
+
+  // Frame table
+  const fb = document.getElementById('pr-frame-body');
+  fb.innerHTML = '';
+  let fHasData = false;
+  document.querySelectorAll('#frame-rows tr').forEach((tr, i) => {
+    const inputs = tr.querySelectorAll('input');
+    const name   = inputs[0]?.value || '';
+    const price  = parseNum(inputs[1]?.value);
+    const discPct= parseNum(inputs[2]?.value);
+    const discRub= Math.round(price * discPct / 100);
+    const total  = price - discRub;
+    if (!name && !price) return;
+    fHasData = true;
+    const bg = i % 2 === 1 ? ' style="background:#F4F9FD"' : '';
+    fb.innerHTML += `<tr${bg}>
+      <td>${name}</td>
+      <td class="right">${price ? price.toLocaleString('ru-RU') : ''}</td>
+      <td class="center disc-pct">${discPct ? discPct + '%' : '—'}</td>
+      <td class="right">${discRub > 0 ? '− ' + discRub.toLocaleString('ru-RU') : '—'}</td>
+      <td class="right total-col">${price ? total.toLocaleString('ru-RU') : '—'}</td>
+    </tr>`;
+  });
+  document.getElementById('pr-frame-sec').style.display = fHasData ? '' : 'none';
+
+  // Lens table
+  const lb = document.getElementById('pr-lens-body');
+  lb.innerHTML = '';
+  let lHasData = false;
+  document.querySelectorAll('#lens-rows tr').forEach((tr, i) => {
+    const type   = tr.querySelector('.type-sel')?.value  || '';
+    const brand  = tr.querySelector('.brand-sel')?.value || '';
+    const pos    = tr.querySelector('.pos-sel')?.value   || '';
+    const inputs = tr.querySelectorAll('input');
+    const name   = inputs[0]?.value || '';
+    const price  = parseNum(inputs[1]?.value);
+    const discPct= parseNum(inputs[2]?.value);
+    const discRub= Math.round(price * discPct / 100);
+    const total  = price - discRub;
+    if (!type && !name && !price) return;
+    lHasData = true;
+    const bg = i % 2 === 1 ? ' style="background:#F4F9FD"' : '';
+    lb.innerHTML += `<tr${bg}>
+      <td>${type}</td>
+      <td>${brand}</td>
+      <td class="center">${pos || '—'}</td>
+      <td>${name}</td>
+      <td class="right">${price ? price.toLocaleString('ru-RU') : ''}</td>
+      <td class="center disc-pct">${discPct ? discPct + '%' : '—'}</td>
+      <td class="right">${discRub > 0 ? '− ' + discRub.toLocaleString('ru-RU') : '—'}</td>
+      <td class="right total-col">${price ? total.toLocaleString('ru-RU') : '—'}</td>
+    </tr>`;
+  });
+  document.getElementById('pr-lens-sec').style.display = lHasData ? '' : 'none';
+
+  // Service table
+  const sb = document.getElementById('pr-svc-body');
+  sb.innerHTML = '';
+  let sHasData = false;
+  document.querySelectorAll('#svc-rows tr').forEach((tr, i) => {
+    const inputs = tr.querySelectorAll('input');
+    const name  = inputs[0]?.value || '';
+    const price = parseNum(inputs[1]?.value);
+    if (!name && !price) return;
+    sHasData = true;
+    const bg = i % 2 === 1 ? ' style="background:#F4F9FD"' : '';
+    const isAuto = tr.classList.contains('auto-izg') || tr.classList.contains('auto-dso');
+    const priceStr = !isAuto && price === 0 && name ? 'бесплатно' :
+                     price > 0 ? price.toLocaleString('ru-RU') + ' ₽' :
+                     isAuto   ? '0 ₽' : '—';
+    sb.innerHTML += `<tr${bg}>
+      <td>${name}</td>
+      <td class="right">${priceStr}</td>
+    </tr>`;
+  });
+  document.getElementById('pr-svc-sec').style.display = sHasData ? '' : 'none';
+
+  // Summary
+  let sumBefore = 0, sumDisc = 0, sumSvc = 0;
+  document.querySelectorAll('#frame-rows tr, #lens-rows tr').forEach(tr => {
+    const price   = parseNum(tr.querySelector('.price-in')?.value);
+    const discPct = parseNum(tr.querySelector('.disc-in')?.value);
+    sumBefore += price;
+    sumDisc   += Math.round(price * discPct / 100);
+  });
+  document.querySelectorAll('#svc-rows tr').forEach(tr => {
+    sumSvc += parseNum(tr.querySelector('.price-in')?.value);
+  });
+  const grand = sumBefore - sumDisc + sumSvc;
+
+  document.getElementById('pr-tot-before').textContent = fmt(sumBefore + sumSvc);
+  document.getElementById('pr-tot-disc').textContent   = sumDisc > 0 ? '− ' + sumDisc.toLocaleString('ru-RU') + ' ₽' : '0 ₽';
+  document.getElementById('pr-tot-final').textContent  = fmt(grand);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   VALIDATION
+════════════════════════════════════════════════════════════════════════════ */
+function clearValidation() {
+  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+  document.querySelectorAll('.card-error').forEach(el => el.classList.remove('card-error'));
+  document.getElementById('val-toast').classList.remove('show');
+}
+
+function validateKP() {
+  clearValidation();
+  const errors = [];
+
+  // Client fields
+  const nameEl  = document.getElementById('cl-name');
+  const phoneEl = document.getElementById('cl-phone');
+  const dateEl  = document.getElementById('cl-date');
+  if (!nameEl.value.trim())  { nameEl.classList.add('field-error');  errors.push('ФИО клиента'); }
+  if (!phoneEl.value.trim()) { phoneEl.classList.add('field-error'); errors.push('Телефон клиента'); }
+  if (!dateEl.value)         { dateEl.classList.add('field-error');  errors.push('Дата КП'); }
+
+  // At least one frame row with a name
+  let hasFrame = false;
+  document.querySelectorAll('#frame-rows tr').forEach(tr => {
+    if (tr.querySelector('input')?.value.trim()) hasFrame = true;
+  });
+  // At least one lens row with type or name selected
+  let hasLens = false;
+  document.querySelectorAll('#lens-rows tr').forEach(tr => {
+    if ((tr.querySelector('.type-sel')?.value) || tr.querySelectorAll('input')[0]?.value.trim()) hasLens = true;
+  });
+
+  if (!hasFrame && !hasLens) {
+    // Highlight both sections
+    document.querySelectorAll('.card')[1]?.classList.add('card-error');
+    document.querySelectorAll('.card')[2]?.classList.add('card-error');
+    errors.push('Добавьте оправу и/или линзы');
+  }
+
+  if (errors.length > 0) {
+    const list = document.getElementById('val-list');
+    list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+    document.getElementById('val-toast').classList.add('show');
+    // Auto-hide after 6s
+    setTimeout(() => document.getElementById('val-toast').classList.remove('show'), 6000);
+    return false;
+  }
+  return true;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ЖУРНАЛ КП  (localStorage)
+════════════════════════════════════════════════════════════════════════════ */
+const KP_STORE = 'kdlinza_kp_journal_v1';
+
+function loadJournalData() {
+  try { return JSON.parse(localStorage.getItem(KP_STORE) || '[]'); }
+  catch(e) { return []; }
+}
+function saveJournalData(data) {
+  localStorage.setItem(KP_STORE, JSON.stringify(data));
+}
+
+function saveKPToJournal() {
+  const records = loadJournalData();
+
+  // Collect all form data
+  const frames = [];
+  document.querySelectorAll('#frame-rows tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input[type="text"], input:not([type])');
+    const name  = inputs[0]?.value || '';
+    const price = parseNum(inputs[1]?.value);
+    const disc  = parseNum(tr.querySelector('.disc-in')?.value);
+    if (name || price) frames.push({ name, price, disc });
+  });
+
+  const lenses = [];
+  document.querySelectorAll('#lens-rows tr').forEach(tr => {
+    const type  = tr.querySelector('.type-sel')?.value  || '';
+    const brand = tr.querySelector('.brand-sel')?.value || '';
+    const pos   = tr.querySelector('.pos-sel')?.value   || '';
+    const inputs = tr.querySelectorAll('input');
+    const name  = inputs[0]?.value || '';
+    const price = parseNum(inputs[1]?.value);
+    const disc  = parseNum(inputs[2]?.value);
+    if (type || name || price) lenses.push({ type, brand, pos, name, price, disc });
+  });
+
+  const services = [];
+  document.querySelectorAll('#svc-rows tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    const name  = inputs[0]?.value || '';
+    const price = parseNum(inputs[1]?.value);
+    if (name || price) services.push({ name, price });
+  });
+
+  // Calculate totals
+  let sumBefore = 0, sumDisc = 0, sumSvc = 0;
+  frames.forEach(r => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
+  lenses.forEach(r => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
+  services.forEach(r => { sumSvc += r.price; });
+  const grandTotal = sumBefore - sumDisc + sumSvc;
+
+  const dateVal = document.getElementById('cl-date').value;
+  let dateStr = '—';
+  if (dateVal) { const [y,m,d] = dateVal.split('-'); dateStr = `${d}.${m}.${y}`; }
+
+  const record = {
+    id: Date.now(),
+    savedAt: new Date().toISOString(),
+    clientName:  document.getElementById('cl-name').value  || '—',
+    clientPhone: document.getElementById('cl-phone').value || '—',
+    clientDate:  dateStr,
+    total:       grandTotal,
+    sumBefore:   sumBefore + sumSvc,
+    sumDisc,
+    frames, lenses, services
+  };
+
+  records.unshift(record);   // newest first
+  saveJournalData(records);
+}
+
+function openJournal() {
+  document.getElementById('journal-view').classList.add('active');
+  // hide the form part (only app-body, not the whole screen-only which contains toast)
+  document.querySelector('.app-header').style.display = 'none';
+  document.querySelector('.app-body').style.display   = 'none';
+  renderJournal();
+}
+
+function closeJournal() {
+  document.getElementById('journal-view').classList.remove('active');
+  document.querySelector('.app-header').style.display = '';
+  document.querySelector('.app-body').style.display   = '';
+}
+
+function renderJournal() {
+  const records = loadJournalData();
+  const container = document.getElementById('journal-content');
+
+  if (records.length === 0) {
+    container.innerHTML = `
+      <div class="journal-empty">
+        <div>📄</div>
+        Журнал пуст. Создайте первое коммерческое предложение.
+      </div>`;
+    return;
+  }
+
+  let rows = records.map((r, idx) => `
+    <tr>
+      <td><strong>${r.clientName}</strong></td>
+      <td>${r.clientPhone}</td>
+      <td class="jnl-date">${r.clientDate}</td>
+      <td class="jnl-total">${r.total.toLocaleString('ru-RU')} ₽</td>
+      <td class="jnl-actions">
+        <button class="btn-jnl-open" onclick="reopenKP(${r.id})">🖨️ Открыть КП</button>
+        <button class="btn-jnl-del"  onclick="deleteKP(${r.id})">✕</button>
+      </td>
+    </tr>`).join('');
+
+  container.innerHTML = `
+    <table class="jnl-table">
+      <thead>
+        <tr>
+          <th style="width:28%">ФИО клиента</th>
+          <th style="width:18%">Телефон</th>
+          <th style="width:14%">Дата КП</th>
+          <th class="right" style="width:18%">Итого к оплате</th>
+          <th style="width:22%"></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function deleteKP(id) {
+  if (!confirm('Удалить это КП из журнала?')) return;
+  const records = loadJournalData().filter(r => r.id !== id);
+  saveJournalData(records);
+  renderJournal();
+}
+
+function reopenKP(id) {
+  const records = loadJournalData();
+  const r = records.find(rec => rec.id === id);
+  if (!r) return;
+
+  // Switch to form
+  closeJournal();
+
+  // Fill client info
+  document.getElementById('cl-name').value  = r.clientName !== '—' ? r.clientName  : '';
+  document.getElementById('cl-phone').value = r.clientPhone !== '—' ? r.clientPhone : '';
+  if (r.clientDate && r.clientDate !== '—') {
+    const [d, m, y] = r.clientDate.split('.');
+    document.getElementById('cl-date').value = `${y}-${m}-${d}`;
+  }
+
+  // Clear current rows
+  document.getElementById('frame-rows').innerHTML = '';
+  document.getElementById('lens-rows').innerHTML  = '';
+  document.getElementById('svc-rows').innerHTML   = '';
+
+  // Re-add rows
+  r.frames.forEach(f   => addFrameRow(f.name, f.price > 0 ? String(f.price) : '', String(f.disc)));
+  r.lenses.forEach(l   => addLensRow(l.type, l.brand, l.pos || '', l.name, l.price > 0 ? String(l.price) : '', String(l.disc)));
+  r.services.forEach(s => addSvcRow(s.name, s.price > 0 ? String(s.price) : ''));
+
+  calcTotals();
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PRINT
+════════════════════════════════════════════════════════════════════════════ */
+function doPrint() {
+  if (!validateKP()) return;
+  saveKPToJournal();   // сохраняем в журнал перед печатью
+  updatePrint();
+  window.print();
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Установим сегодняшнюю дату
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('cl-date').value = today;
+
+  // Сбросить подсветку при вводе в клиентские поля
+  ['cl-name','cl-phone','cl-date'].forEach(id => {
+    document.getElementById(id).addEventListener('input', clearValidation);
+    document.getElementById(id).addEventListener('change', clearValidation);
+  });
+});
+</script>
+</body>
+</html>
