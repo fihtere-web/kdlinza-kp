@@ -384,14 +384,14 @@ table.items .td-del { width: 28px; text-align: center; }
 .journal-view { display: none; }
 .journal-view.active { display: block; }
 .journal-header {
-  background: var(--blue);
+  background: var(--blue-dk);
   padding: 0 24px;
-  height: 56px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 3px 10px rgba(0,0,0,.15);
-  position: sticky; top: 0; z-index: 100;
+  position: sticky; top: 56px; z-index: 99;
 }
 .journal-header .jh-title { font-size: 16px; font-weight: 700; color: white; }
 .btn-new-kp {
@@ -1922,15 +1922,13 @@ async function saveKPToJournal() {
 /* ── Журнал ───────────────────────────────────────────────────────────────── */
 function openJournal() {
   document.getElementById('journal-view').classList.add('active');
-  document.querySelector('.app-header').style.display = 'none';
-  document.querySelector('.app-body').style.display   = 'none';
+  document.querySelector('.app-body').style.display = 'none';
   renderJournal();
 }
 
 function closeJournal() {
   document.getElementById('journal-view').classList.remove('active');
-  document.querySelector('.app-header').style.display = '';
-  document.querySelector('.app-body').style.display   = '';
+  document.querySelector('.app-body').style.display = '';
 }
 
 function newKP() {
