@@ -927,7 +927,7 @@ table.items .td-del { width: 28px; text-align: center; }
 <div class="journal-view screen-only" id="journal-view">
   <div class="journal-header">
     <div class="jh-title">📋 Журнал коммерческих предложений</div>
-    <button class="btn-new-kp" onclick="closeJournal()">✏️ Создать коммерческое предложение</button>
+    <button class="btn-new-kp" onclick="newKP()">✏️ Создать коммерческое предложение</button>
   </div>
   <div class="journal-body">
     <div id="journal-content"><!-- заполняется JS --></div>
@@ -1587,6 +1587,19 @@ function closeJournal() {
   document.getElementById('journal-view').classList.remove('active');
   document.querySelector('.app-header').style.display = '';
   document.querySelector('.app-body').style.display   = '';
+}
+
+function newKP() {
+  // Очистить все поля формы
+  document.getElementById('cl-name').value  = '';
+  document.getElementById('cl-phone').value = '';
+  document.getElementById('cl-date').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('frame-rows').innerHTML = '';
+  document.getElementById('lens-rows').innerHTML  = '';
+  document.getElementById('svc-rows').innerHTML   = '';
+  calcTotals();
+  clearValidation();
+  closeJournal();
 }
 
 async function renderJournal() {
