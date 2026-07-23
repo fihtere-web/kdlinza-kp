@@ -1594,6 +1594,7 @@ const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 let currentUser  = null;
 let currentIsAdmin = false;
 let journalCache = [];   // кэш записей для reopenKP
+let currentKPId  = null; // id открытого КП (null = новое)
 
 /* ── Auth ─────────────────────────────────────────────────────────────────── */
 async function initAuth() {
@@ -1692,9 +1693,7 @@ async function saveKPToJournal() {
   if (dateVal) { const [y,m,d] = dateVal.split('-'); dateStr = `${d}.${m}.${y}`; }
 
   const displayName = currentUser.email.replace(LOGIN_DOMAIN, '');
-  const { error } = await supa.from('kp_records').insert({
-    user_id:       currentUser.id,
-    employee_name: displayName,
+  const payload = {
     client_name:   document.getElementById('cl-name').value  || '—',
     client_phone:  document.getElementById('cl-phone').value || '—',
     client_date:   dateStr,
@@ -1702,7 +1701,23 @@ async function saveKPToJournal() {
     sum_before:    sumBefore + sumSvc,
     sum_disc:      sumDisc,
     data:          { frames, lenses, services }
-  });
+  };
+
+  let error;
+  if (currentKPId) {
+    // Обновить существующее КП
+    ({ error } = await supa.from('kp_records').update(payload).eq('id', currentKPId));
+  } else {
+    // Создать новое КП
+    const { data: inserted, error: err } = await supa.from('kp_records').insert({
+      user_id:       currentUser.id,
+      employee_name: displayName,
+      ...payload
+    }).select('id').single();
+    error = err;
+    if (inserted) currentKPId = inserted.id; // запомнить id нового КП
+  }
+
   if (error) {
     console.error('Ошибка сохранения КП:', error);
     alert('⚠️ КП не сохранилось в журнал:\n' + error.message + '\n\nОбратитесь к администратору.');
@@ -1724,6 +1739,7 @@ function closeJournal() {
 }
 
 function newKP() {
+  currentKPId = null; // сбросить — это новое КП
   // Очистить все поля формы
   document.getElementById('cl-name').value  = '';
   document.getElementById('cl-phone').value = '';
@@ -1772,7 +1788,7 @@ async function renderJournal() {
       ${isAdmin ? `<td class="jnl-emp">${r.employee_name || '—'}</td>` : ''}
       <td class="jnl-actions">
         <button class="btn-jnl-open" onclick="reopenKP(${r.id})">✏️ Открыть</button>
-        <button class="btn-jnl-del"  onclick="deleteKP(${r.id})">✕</button>
+        ${isAdmin ? `<button class="btn-jnl-del" onclick="deleteKP(${r.id})">✕</button>` : ''}
       </td>
     </tr>`).join('');
 
@@ -1802,6 +1818,7 @@ async function deleteKP(id) {
 function reopenKP(id) {
   const r = journalCache.find(rec => rec.id === id);
   if (!r || !r.data) return;
+  currentKPId = r.id; // запомнить — редактируем существующее
   closeJournal();
 
   document.getElementById('cl-name').value  = r.client_name !== '—' ? r.client_name  : '';
