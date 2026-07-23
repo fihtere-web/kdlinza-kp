@@ -500,6 +500,20 @@ table.items .td-del { width: 28px; text-align: center; }
 .jnl-emp   { color: #555; font-size: 13px; }
 .jnl-date  { color: #555; font-size: 13px; }
 
+/* Таблица сотрудников */
+.usr-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.usr-table th { background: var(--blue); color: white; padding: 10px 14px; font-weight: 600; text-align: left; }
+.usr-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.usr-table tbody tr:hover td { background: var(--blue-lt); }
+.usr-input { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px; padding: 6px 8px; font-size: 13px; font-family: inherit; }
+.usr-input:focus { outline: none; border-color: var(--blue); }
+.usr-textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 5px; padding: 6px 8px; font-size: 13px; font-family: inherit; min-height: 60px; resize: vertical; }
+.usr-textarea:focus { outline: none; border-color: var(--blue); }
+.btn-usr-save { background: var(--blue); color: white; border: none; border-radius: 6px; padding: 7px 16px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.btn-usr-save:hover { background: #006fb3; }
+.btn-usr-save.saved { background: #27ae60; }
+.usr-panel-hint { padding: 16px 24px; background: #f0f7ff; border-bottom: 1px solid var(--border); font-size: 13px; color: #555; }
+
 /* Фильтры журнала */
 .journal-filters {
   background: white;
@@ -1100,6 +1114,7 @@ input[readonly] {
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="user-pill"><span class="dot"></span><span id="user-email-display"></span></div>
       <button class="btn-instr" onclick="openInstr()">📖 Инструкция</button>
+      <button class="btn-jnl-hdr" id="btn-users-hdr" onclick="openUsersPanel()" style="display:none">👥 Сотрудники</button>
       <button class="btn-jnl-hdr" onclick="openJournal()">📋 Журнал КП</button>
       <button class="btn-print-top" onclick="doPrint()">🖨️ Распечатать КП</button>
       <button class="btn-logout" onclick="doLogout()">Выйти</button>
@@ -1307,6 +1322,22 @@ input[readonly] {
 
 
 <!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  ПАНЕЛЬ СОТРУДНИКОВ (admin only)                                         -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="journal-view screen-only" id="users-view">
+  <div class="journal-header">
+    <div class="jh-title">👥 Настройки сотрудников</div>
+    <button class="btn-new-kp" onclick="closeUsersPanel()">← Назад к журналу</button>
+  </div>
+  <div class="journal-body">
+    <div id="users-content">
+      <div style="padding:24px;color:#888;">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
 <!--  ИНСТРУКЦИЯ                                                              -->
 <!-- ════════════════════════════════════════════════════════════════════════ -->
 <div class="instr-overlay screen-only" id="instr-overlay" onclick="if(event.target===this)closeInstr()">
@@ -1454,7 +1485,7 @@ input[readonly] {
   <!-- Баннер -->
   <table class="kp-banner" cellspacing="0">
     <tr>
-      <td class="b-left">
+      <td class="b-left" id="pr-store-left">
         <strong>Оптика KDLINZA.RU</strong>
         ТРЦ «Балтия Молл»<br>
         Калининградская обл., м.о. Гурьевский,<br>
@@ -1463,7 +1494,7 @@ input[readonly] {
       <td class="b-center">
         <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8IS0tIENyZWF0b3I6IENvcmVsRFJBVyAyMDIwICg2NC1CaXQpIC0tPg0KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzMTAuNTI1bW0iIGhlaWdodD0iMjIzLjk4N21tIiB2ZXJzaW9uPSIxLjEiIHN0eWxlPSJzaGFwZS1yZW5kZXJpbmc6Z2VvbWV0cmljUHJlY2lzaW9uOyB0ZXh0LXJlbmRlcmluZzpnZW9tZXRyaWNQcmVjaXNpb247IGltYWdlLXJlbmRlcmluZzpvcHRpbWl6ZVF1YWxpdHk7IGZpbGwtcnVsZTpldmVub2RkOyBjbGlwLXJ1bGU6ZXZlbm9kZCINCnZpZXdCb3g9IjAgMCAxMzk5MTUuNjMgMTAwOTIzLjQ3Ig0KIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIg0KIHhtbG5zOnhvZG09Imh0dHA6Ly93d3cuY29yZWwuY29tL2NvcmVsZHJhdy9vZG0vMjAwMyI+DQogPGRlZnM+DQogIDxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+DQogICA8IVtDREFUQVsNCiAgICAuZmlsMSB7ZmlsbDojRkVGRUZFfQ0KICAgIC5maWwwIHtmaWxsOiMwMDhERDJ9DQogICAgLmZpbDIge2ZpbGw6I0ZFRkVGRTtmaWxsLXJ1bGU6bm9uemVyb30NCiAgIF1dPg0KICA8L3N0eWxlPg0KIDwvZGVmcz4NCiA8ZyBpZD0i0KHQu9C+0LlfeDAwMjBfMSI+DQogIDxtZXRhZGF0YSBpZD0iQ29yZWxDb3JwSURfMENvcmVsLUxheWVyIi8+DQogIDxwb2x5Z29uIGNsYXNzPSJmaWwwIiBwb2ludHM9Ii0wLDAgMTM5OTE1LjYzLDAgMTM5OTE1LjYzLDEwMDkyMy40NyAtMCwxMDA5MjMuNDcgIi8+DQogIDxnIGlkPSJfMjI0MjQzNDIwMTg4OCI+DQogICA8cGF0aCBjbGFzcz0iZmlsMSIgZD0iTTY5NTY4LjQ3IDI4MzMyLjQzYzU4MTEuODcsMCAxMDUyMy4yLDQ3MTEuNDcgMTA1MjMuMiwxMDUyMy4xNiAwLDU4MTEuNzMgLTQ3MTEuMzMsMTA1MjMuMiAtMTA1MjMuMiwxMDUyMy4yIC01ODExLjgyLDAgLTEwNTIzLjE2LC00NzExLjQ3IC0xMDUyMy4xNiwtMTA1MjMuMiAwLC01ODExLjY5IDQ3MTEuMzMsLTEwNTIzLjE2IDEwNTIzLjE2LC0xMDUyMy4xNnoiLz4NCiAgIDxwYXRoIGNsYXNzPSJmaWwxIiBkPSJNNjY3MDkuNjkgMTg0MDAuOTNjMTA3ODkuOSwtMTI0Ni44NCAyMTM2OS4wMiwzNzYwLjQ4IDI2NzY0LjU2LDE3Mjc1LjM4IC0zOTUzNS42LC0zNDYzOC4zNiAtNDU3MzEuMjMsMjYzNDguNTggLTc0NTc2LjA2LDQ5ODcuOTQgMjIxNDEuOSw5MDAzIDI4NDY3Ljk2LC0yMjAyMC4xIDQ3ODExLjUsLTIyMjYzLjMzeiIvPg0KICAgPHBhdGggY2xhc3M9ImZpbDEiIGQ9Ik03MzIwNS45NCA2MDA3NS4wNmMtMTA3ODkuOSwxMjQ2Ljc5IC0yMTM2OS4wMiwtMzc2MC41MiAtMjY3NjQuNTYsLTE3Mjc1LjQzIDM5NTM1LjYsMzQ2MzguMzYgNDU3MzEuMjMsLTI2MzQ4LjU0IDc0NTc2LjA2LC00OTg3Ljk0IC0yMjE0MS45LC05MDAyLjk1IC0yODQ2Ny45NiwyMjAyMC4xNSAtNDc4MTEuNSwyMjI2My4zN3oiLz4NCiAgIDxwYXRoIGNsYXNzPSJmaWwyIiBkPSJNMjg0NTUuMTIgODI0MTYuODNsMjc1NC4wMiAwIDAgLTQzNjQuODQgMjg1Mi4zNCA0MzY0Ljg0IDM0NDIuNTEgMCAtMzgzNS45MSAtNTIzNC45IDM3MzcuNTQgLTQ5MTUuODUgLTMyMzEuNzMgMCAtMjk2NC43NiA0MjYzLjMyIDAgLTQyNjMuMzIgLTI3NTQuMDIgMCAwIDEwMTUwLjc2em05ODM1LjcxIDBsMzU5Ny4wNSAwYzM1MjYuODEsMCA1MDU4LjM3LC0yMzQ5LjE4IDUwNTguMzcsLTUwNzUuNCAwLC0yMjc2LjY0IC0xMDExLjY4LC01MDc1LjM1IC01MDU4LjM3LC01MDc1LjM1bC0zNTk3LjA1IDAgMCAxMDE1MC43NnptMjc1My45OCAtMjQzNi4xOGwwIC01Mjc4LjM5IDMwOS4xNCAwYzI3MjUuOTEsMCAyNzU0LjAyLDIwNzMuNjUgMjc1NC4wMiwyNjM5LjE3IDAsNTIyLjA0IC0yOC4xMiwyNjM5LjIyIC0yNzU0LjAyLDI2MzkuMjJsLTMwOS4xNCAwem03MjM2LjI4IDI0MzYuMThsNTcwNC43MiAwIDAgLTI0MzYuMTggLTI5NTAuNzQgMCAwIC03NzE0LjU3IC0yNzUzLjk4IDAgMCAxMDE1MC43NnptNjc4Ni42NSAwbDI3NTMuOTggMCAwIC0xMDE1MC43NiAtMjc1My45OCAwIDAgMTAxNTAuNzZ6bTQ1MjQuNDMgMGwyNjU1LjYyIDAgMCAtNjA5MC40NiAzNjM5LjIzIDYwOTAuNDYgMjg1Mi4zNCAwIDAgLTEwMTUwLjc2IC0yNjU1LjYyIDAgMCA1OTg4Ljk1IC0zNTk3LjA1IC01OTg4Ljk1IC0yODk0LjUxIDAgMCAxMDE1MC43NnptMTA3MjAuOTIgLTEwMTUwLjc2bDAgMjQzNi4xOCAzNzM3LjU0IDAgLTQ1MjQuNDMgNzcxNC41NyA4MzYwLjM0IDAgMCAtMjQzNi4xOCAtNDAzMi42MyAwIDQ0MjYuMDcgLTc3MTQuNTcgLTc5NjYuODkgMHptNzc3MC4xNyAxMDE1MC43NmwyOTUwLjcgMCA1NDcuOTkgLTE3NTQuNjQgMzM0NC4xNCAwIDU0Ny45OSAxNzU0LjY0IDI5NTAuNyAwIC0zNDk4LjY5IC0xMDE1MC43NiAtMzM0NC4xNCAwIC0zNDk4LjY5IDEwMTUwLjc2em01MTcwLjc5IC03NzI5LjA4bDExMjQuMDYgMzc0MS4yOCAtMjI0OC4xNiAwIDExMjQuMSAtMzc0MS4yOHptNTk1Ny41OSA2NTEwLjk5YzAsODEyLjA4IDY0Ni4zNSwxNDc5LjE2IDE0MzMuMiwxNDc5LjE2IDc4Ni44OSwwIDE0MzMuMjQsLTY2Ny4wOCAxNDMzLjI0LC0xNDc5LjE2IDAsLTgxMi4wMyAtNjQ2LjM1LC0xNDc5LjExIC0xNDMzLjI0LC0xNDc5LjExIC03ODYuODQsMCAtMTQzMy4yLDY2Ny4wOCAtMTQzMy4yLDE0NzkuMTF6bTQ2MzYuODUgMTIxOC4wOWwyNzUzLjk4IDAgMCAtMzM0OS43MyAyMDc5LjU1IDMzNDkuNzMgMzMzMC4wOSAwIC0yNzUzLjk4IC00MDYwLjI5YzkyNy4zOCwtMzMzLjU2IDIwNjUuNDksLTExMzEuMDkgMjA2NS40OSwtMzA0NS4yMyAwLC00NjQuMDUgLTExMi40MiwtMzA0NS4yMyAtMzQwMC4zMywtMzA0NS4yM2wtNDA3NC44IDAgMCAxMDE1MC43NnptMjc1My45OCAtNTU4Mi45M2wwIC0yMzM0LjY3IDY3NC40NyAwYzk4My41NywwIDEyOTIuNjYsNTk0LjU0IDEyOTIuNjYsMTE2MC4xIDAsNTk0LjU0IC0zMDkuMSwxMTc0LjU3IC0xMjkyLjY2LDExNzQuNTdsLTY3NC40NyAwem0xMDUyNC4xOSA1ODcyLjk3YzQxMDIuODcsMCA0MzI3LjcxLC0zMzA2LjI1IDQzMjcuNzEsLTQzOTMuODZsMCAtNjA0Ni45NCAtMjc1My45OCAwIDAgNTk4OC45NWMwLDYyMy41NSAtMTEyLjQyLDIwMTUuNjYgLTE1NzMuNzMsMjAxNS42NiAtMTQ2MS4zMSwwIC0xNTczLjY5LC0xMzkyLjExIC0xNTczLjY5LC0yMDE1LjY2bDAgLTU5ODguOTUgLTI3NTQuMDIgMCAwIDYwNDYuOTRjMCwxMDg3LjYxIDIyNC44NCw0MzkzLjg2IDQzMjcuNzEsNDM5My44NnoiLz4NCiAgPC9nPg0KIDwvZz4NCjwvc3ZnPg0K" alt="KDLINZA.RU" style="height:44pt;display:block;margin:0 auto;">
       </td>
-      <td class="b-right">
+      <td class="b-right" id="pr-store-right">
         <strong>+7 (900) 348-97-19</strong>
         kdlinza.ru
       </td>
@@ -1575,7 +1606,7 @@ input[readonly] {
   </div>
 
   <!-- Футер -->
-  <div class="kp-footer">
+  <div class="kp-footer" id="pr-store-footer">
     Оптика KDLINZA.RU &nbsp;•&nbsp; ТРЦ «Балтия Молл» &nbsp;•&nbsp;
     Калининградская обл., м.о. Гурьевский, Приморское кольцо, д. 2 &nbsp;•&nbsp;
     +7 (900) 348-97-19
@@ -1851,6 +1882,19 @@ function calcTotals() {
    UPDATE PRINT КП
 ════════════════════════════════════════════════════════════════════════════ */
 function updatePrint() {
+  // Контакты магазина из настроек пользователя
+  const DEFAULT_PHONE   = '+7 (900) 348-97-19';
+  const DEFAULT_ADDRESS = 'ТРЦ «Балтия Молл»\nКалининградская обл., м.о. Гурьевский,\nПриморское кольцо, д. 2';
+  const storePhone   = (currentUserSettings.phone   || '').trim() || DEFAULT_PHONE;
+  const storeAddress = (currentUserSettings.address || '').trim() || DEFAULT_ADDRESS;
+  const addrHtml = storeAddress.replace(/\n/g, '<br>');
+  const leftEl = document.getElementById('pr-store-left');
+  if (leftEl) leftEl.innerHTML = `<strong>Оптика KDLINZA.RU</strong><br>${addrHtml}`;
+  const rightEl = document.getElementById('pr-store-right');
+  if (rightEl) rightEl.innerHTML = `<strong>${storePhone}</strong><br>kdlinza.ru`;
+  const footerEl = document.getElementById('pr-store-footer');
+  if (footerEl) footerEl.textContent = `Оптика KDLINZA.RU • ${storeAddress.replace(/\n/g, ', ')} • ${storePhone}`;
+
   // Client info
   const name  = document.getElementById('cl-name').value  || '—';
   const phone = document.getElementById('cl-phone').value || '—';
@@ -2136,6 +2180,7 @@ let currentUser  = null;
 let currentIsAdmin = false;
 let journalCache = [];   // кэш записей для reopenKP
 let currentKPId  = null; // id открытого КП (null = новое)
+let currentUserSettings = {}; // настройки текущего пользователя (phone, address)
 
 /* ── Auth ─────────────────────────────────────────────────────────────────── */
 async function initAuth() {
@@ -2147,7 +2192,7 @@ async function initAuth() {
   });
 }
 
-function onLogin(user) {
+async function onLogin(user) {
   currentUser  = user;
   currentIsAdmin = (user.app_metadata?.role === 'admin');
   document.getElementById('login-screen').style.display = 'none';
@@ -2155,11 +2200,33 @@ function onLogin(user) {
   const display = user.email.replace(LOGIN_DOMAIN, '');
   document.getElementById('user-email-display').textContent =
     display + (currentIsAdmin ? ' 👑' : '');
+  // Показываем кнопку «Сотрудники» только для admina
+  const btnUsers = document.getElementById('btn-users-hdr');
+  if (btnUsers) btnUsers.style.display = currentIsAdmin ? '' : 'none';
+  // Загружаем настройки текущего пользователя
+  await loadUserSettings();
   // Дата всегда только для чтения — ставится автоматически
   lockDateField();
   // При входе сразу открываем журнал с КП за сегодня
   setJournalPeriod('today');
   openJournal();
+}
+
+async function loadUserSettings() {
+  if (!currentUser) return;
+  const displayName = currentUser.email.replace(LOGIN_DOMAIN, '');
+  // Пробуем загрузить настройки
+  let { data } = await supa.from('user_settings').select('*').eq('user_id', currentUser.id).maybeSingle();
+  if (!data) {
+    // Создаём пустую запись при первом входе
+    const { data: inserted } = await supa
+      .from('user_settings')
+      .insert({ user_id: currentUser.id, display_name: displayName, phone: '', address: '' })
+      .select().maybeSingle();
+    data = inserted;
+  }
+  currentUserSettings = data || {};
+  updatePrint(); // обновляем баннер с новыми данными
 }
 
 function lockDateField() {
@@ -2271,6 +2338,7 @@ async function saveKPToJournal() {
 
 /* ── Журнал ───────────────────────────────────────────────────────────────── */
 function openJournal() {
+  document.getElementById('users-view').classList.remove('active');
   document.getElementById('journal-view').classList.add('active');
   document.querySelector('.app-body').style.display   = 'none';
   document.querySelector('.btn-print-top').style.display = 'none';
@@ -2281,6 +2349,90 @@ function closeJournal() {
   document.getElementById('journal-view').classList.remove('active');
   document.querySelector('.app-body').style.display   = '';
   document.querySelector('.btn-print-top').style.display = '';
+}
+
+/* ── Панель сотрудников (admin) ───────────────────────────────────────────── */
+function openUsersPanel() {
+  if (!currentIsAdmin) return;
+  document.querySelector('.app-body').style.display = 'none';
+  document.querySelector('.btn-print-top').style.display = 'none';
+  document.getElementById('journal-view').classList.remove('active');
+  document.getElementById('users-view').classList.add('active');
+  renderUsersPanel();
+}
+
+function closeUsersPanel() {
+  document.getElementById('users-view').classList.remove('active');
+  openJournal();
+}
+
+async function renderUsersPanel() {
+  const cont = document.getElementById('users-content');
+  cont.innerHTML = '<div style="padding:24px;color:#888;">Загрузка...</div>';
+  const { data, error } = await supa.from('user_settings').select('*').order('display_name');
+  if (error) {
+    cont.innerHTML = `<div style="padding:24px;color:red;">Ошибка загрузки: ${error.message}</div>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    cont.innerHTML = '<div style="padding:24px;color:#888;">Нет записей. Сотрудники появятся здесь после первого входа в систему.</div>';
+    return;
+  }
+  let html = `
+    <div class="usr-panel-hint">
+      Заполните телефон и адрес для каждого сотрудника — они будут отображаться в его печатных КП.<br>
+      Адрес можно вводить в несколько строк (каждая строка — новая строка в шапке КП).
+    </div>
+    <div style="overflow-x:auto;padding:16px 24px;">
+    <table class="usr-table">
+      <thead><tr>
+        <th style="width:18%">Сотрудник</th>
+        <th style="width:22%">Телефон в КП</th>
+        <th style="width:44%">Адрес в КП</th>
+        <th style="width:16%"></th>
+      </tr></thead>
+      <tbody>`;
+  data.forEach(row => {
+    const uid = row.user_id;
+    const dn  = row.display_name || row.user_id;
+    const ph  = (row.phone   || '').replace(/"/g, '&quot;');
+    const ad  = (row.address || '').replace(/</g, '&lt;');
+    html += `<tr id="usr-row-${uid}">
+      <td><strong>${dn}</strong></td>
+      <td><input class="usr-input" id="usr-ph-${uid}" value="${ph}" placeholder="+7 (___) ___-__-__"></td>
+      <td><textarea class="usr-textarea" id="usr-ad-${uid}" placeholder="Название магазина&#10;Город, улица, дом">${ad}</textarea></td>
+      <td><button class="btn-usr-save" onclick="saveUserSetting('${uid}')">Сохранить</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+async function saveUserSetting(userId) {
+  const phoneEl   = document.getElementById('usr-ph-' + userId);
+  const addrEl    = document.getElementById('usr-ad-' + userId);
+  const btn       = document.querySelector(`#usr-row-${userId} .btn-usr-save`);
+  if (!phoneEl || !addrEl) return;
+  btn.textContent = 'Сохраняю...';
+  btn.disabled = true;
+  const { error } = await supa.from('user_settings')
+    .update({ phone: phoneEl.value.trim(), address: addrEl.value.trim() })
+    .eq('user_id', userId);
+  if (error) {
+    alert('Ошибка сохранения: ' + error.message);
+    btn.textContent = 'Сохранить';
+    btn.disabled = false;
+    return;
+  }
+  // Если это текущий пользователь — обновляем локальные настройки и баннер
+  if (currentUser && userId === currentUser.id) {
+    currentUserSettings.phone   = phoneEl.value.trim();
+    currentUserSettings.address = addrEl.value.trim();
+    updatePrint();
+  }
+  btn.textContent = '✓ Сохранено';
+  btn.classList.add('saved');
+  setTimeout(() => { btn.textContent = 'Сохранить'; btn.classList.remove('saved'); btn.disabled = false; }, 2000);
 }
 
 function newKP() {
