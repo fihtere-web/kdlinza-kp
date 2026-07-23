@@ -1922,13 +1922,15 @@ async function saveKPToJournal() {
 /* ── Журнал ───────────────────────────────────────────────────────────────── */
 function openJournal() {
   document.getElementById('journal-view').classList.add('active');
-  document.querySelector('.app-body').style.display = 'none';
+  document.querySelector('.app-body').style.display   = 'none';
+  document.querySelector('.btn-print-top').style.display = 'none';
   renderJournal();
 }
 
 function closeJournal() {
   document.getElementById('journal-view').classList.remove('active');
-  document.querySelector('.app-body').style.display = '';
+  document.querySelector('.app-body').style.display   = '';
+  document.querySelector('.btn-print-top').style.display = '';
 }
 
 function newKP() {
