@@ -449,6 +449,27 @@ table.items .td-del { width: 28px; text-align: center; }
 .jnl-table tr:last-child td { border-bottom: none; }
 .jnl-table tbody tr:hover td { background: var(--blue-lt); }
 .jnl-total { font-weight: 700; color: var(--blue); text-align: right; }
+.jnl-emp   { color: #555; font-size: 13px; }
+
+/* Заблокированное поле даты */
+input[readonly] {
+  background: #f0f5fa !important;
+  color: #555 !important;
+  cursor: not-allowed !important;
+  border-color: #d0dce8 !important;
+}
+.field-hint {
+  font-size: 11px;
+  color: #888;
+  margin-top: 3px;
+}
+.field-warn {
+  font-size: 11px;
+  color: #c04040;
+  margin-top: 3px;
+  display: none;
+}
+.field-warn.show { display: block; }
 .jnl-date { color: var(--gray); font-size: 12px; }
 .jnl-actions { text-align: right; white-space: nowrap; }
 .btn-jnl-open {
@@ -785,15 +806,20 @@ table.items .td-del { width: 28px; text-align: center; }
           <div class="client-grid">
             <div class="field">
               <label>ФИО клиента</label>
-              <input type="text" id="cl-name" placeholder="Иванов Иван Иванович" oninput="updatePrint()">
+              <input type="text" id="cl-name" placeholder="Иванов Иван Иванович"
+                oninput="onNameInput(this)" autocomplete="off">
+              <div class="field-warn" id="warn-name"></div>
             </div>
             <div class="field">
               <label>Телефон</label>
-              <input type="text" id="cl-phone" placeholder="+7 (900) 000-00-00" oninput="updatePrint()">
+              <input type="text" id="cl-phone" placeholder="+7 (___) ___-__-__"
+                oninput="onPhoneInput(this)" maxlength="18" autocomplete="off">
+              <div class="field-warn" id="warn-phone"></div>
             </div>
             <div class="field">
               <label>Дата КП</label>
               <input type="date" id="cl-date" oninput="updatePrint()">
+              <div class="field-hint" id="hint-date" style="display:none">🔒 Дата устанавливается автоматически</div>
             </div>
           </div>
         </div>
@@ -1418,12 +1444,86 @@ function updatePrint() {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   PHONE & NAME HELPERS
+════════════════════════════════════════════════════════════════════════════ */
+function onPhoneInput(el) {
+  // Оставляем только цифры
+  let digits = el.value.replace(/\D/g, '');
+  // Если начинается с 8 — заменяем на 7
+  if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+  // Если вообще нет 7 в начале — ставим
+  if (!digits.startsWith('7')) digits = '7' + digits;
+  // Ограничиваем 11 цифрами
+  digits = digits.slice(0, 11);
+
+  // Форматируем +7 (XXX) XXX-XX-XX
+  let out = '+7';
+  if (digits.length > 1) out += ' (' + digits.slice(1, 4);
+  if (digits.length >= 4) out += ') ' + digits.slice(4, 7);
+  if (digits.length >= 7) out += '-' + digits.slice(7, 9);
+  if (digits.length >= 9) out += '-' + digits.slice(9, 11);
+  el.value = out;
+
+  // Подсказка под полем
+  const warn = document.getElementById('warn-phone');
+  if (digits.length > 1 && digits.length < 11) {
+    warn.textContent = 'Введите номер полностью: +7 (XXX) XXX-XX-XX';
+    warn.classList.add('show');
+    el.classList.add('field-error');
+  } else {
+    warn.textContent = '';
+    warn.classList.remove('show');
+    el.classList.remove('field-error');
+  }
+  updatePrint();
+}
+
+function validatePhone(val) {
+  const digits = val.replace(/\D/g, '');
+  return digits.length === 11 && digits.startsWith('7');
+}
+
+function onNameInput(el) {
+  const val  = el.value;
+  const warn = document.getElementById('warn-name');
+  const result = checkName(val);
+  if (val.length > 0 && result !== true) {
+    warn.textContent = result;
+    warn.classList.add('show');
+    el.classList.add('field-error');
+  } else {
+    warn.textContent = '';
+    warn.classList.remove('show');
+    el.classList.remove('field-error');
+  }
+  updatePrint();
+}
+
+function checkName(val) {
+  const trimmed = val.trim();
+  if (!trimmed) return true; // пустое — проверяем в validate
+  // Только кириллица, пробелы, дефисы, апостроф
+  if (!/^[А-ЯЁа-яёЫыЭэ\s\-']+$/u.test(trimmed)) {
+    return 'ФИО должно содержать только кириллические буквы';
+  }
+  // Минимум 2 слова
+  const words = trimmed.split(/\s+/).filter(w => w.length >= 2);
+  if (words.length < 2) {
+    return 'Введите минимум Фамилию и Имя через пробел';
+  }
+  // Каждое слово >= 2 символов — уже фильтруем выше
+  return true;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    VALIDATION
 ════════════════════════════════════════════════════════════════════════════ */
 function clearValidation() {
   document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
   document.querySelectorAll('.card-error').forEach(el => el.classList.remove('card-error'));
   document.getElementById('val-toast').classList.remove('show');
+  document.getElementById('warn-name').classList.remove('show');
+  document.getElementById('warn-phone').classList.remove('show');
 }
 
 function validateKP() {
@@ -1434,9 +1534,26 @@ function validateKP() {
   const nameEl  = document.getElementById('cl-name');
   const phoneEl = document.getElementById('cl-phone');
   const dateEl  = document.getElementById('cl-date');
-  if (!nameEl.value.trim())  { nameEl.classList.add('field-error');  errors.push('ФИО клиента'); }
-  if (!phoneEl.value.trim()) { phoneEl.classList.add('field-error'); errors.push('Телефон клиента'); }
-  if (!dateEl.value)         { dateEl.classList.add('field-error');  errors.push('Дата КП'); }
+
+  // Проверка ФИО
+  const nameCheck = checkName(nameEl.value);
+  if (!nameEl.value.trim()) {
+    nameEl.classList.add('field-error');
+    errors.push('Введите ФИО клиента');
+  } else if (nameCheck !== true) {
+    nameEl.classList.add('field-error');
+    errors.push(nameCheck);
+  }
+
+  // Проверка телефона
+  if (!phoneEl.value.trim()) {
+    phoneEl.classList.add('field-error');
+    errors.push('Введите телефон клиента');
+  } else if (!validatePhone(phoneEl.value)) {
+    phoneEl.classList.add('field-error');
+    errors.push('Телефон не заполнен полностью: +7 (XXX) XXX-XX-XX');
+  }
+  // Дата всегда заполнена автоматически — не проверяем
 
   // At least one frame row with a name
   let hasFrame = false;
@@ -1474,7 +1591,8 @@ const SUPA_URL = 'https://avwznovjzdtsfplczoao.supabase.co';
 const SUPA_KEY = 'sb_publishable_eiwaDf75VPzaC00jqAFM5g_4avLI1HH';
 const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-let currentUser = null;
+let currentUser  = null;
+let currentIsAdmin = false;
 let journalCache = [];   // кэш записей для reopenKP
 
 /* ── Auth ─────────────────────────────────────────────────────────────────── */
@@ -1488,11 +1606,22 @@ async function initAuth() {
 }
 
 function onLogin(user) {
-  currentUser = user;
+  currentUser  = user;
+  currentIsAdmin = (user.app_metadata?.role === 'admin');
   document.getElementById('login-screen').style.display = 'none';
   // показываем только логин, без @kdlinza.ru
   const display = user.email.replace(LOGIN_DOMAIN, '');
-  document.getElementById('user-email-display').textContent = display;
+  document.getElementById('user-email-display').textContent =
+    display + (currentIsAdmin ? ' 👑' : '');
+  // Дата всегда только для чтения — ставится автоматически
+  lockDateField();
+}
+
+function lockDateField() {
+  const dateEl  = document.getElementById('cl-date');
+  const hintEl  = document.getElementById('hint-date');
+  dateEl.readOnly = true;
+  if (hintEl) hintEl.style.display = '';
 }
 
 function showLoginScreen() {
@@ -1562,15 +1691,17 @@ async function saveKPToJournal() {
   let dateStr = '—';
   if (dateVal) { const [y,m,d] = dateVal.split('-'); dateStr = `${d}.${m}.${y}`; }
 
+  const displayName = currentUser.email.replace(LOGIN_DOMAIN, '');
   const { error } = await supa.from('kp_records').insert({
-    user_id:      currentUser.id,
-    client_name:  document.getElementById('cl-name').value  || '—',
-    client_phone: document.getElementById('cl-phone').value || '—',
-    client_date:  dateStr,
-    total:        grandTotal,
-    sum_before:   sumBefore + sumSvc,
-    sum_disc:     sumDisc,
-    data:         { frames, lenses, services }
+    user_id:       currentUser.id,
+    employee_name: displayName,
+    client_name:   document.getElementById('cl-name').value  || '—',
+    client_phone:  document.getElementById('cl-phone').value || '—',
+    client_date:   dateStr,
+    total:         grandTotal,
+    sum_before:    sumBefore + sumSvc,
+    sum_disc:      sumDisc,
+    data:          { frames, lenses, services }
   });
   if (error) console.error('Ошибка сохранения КП:', error);
 }
@@ -1627,26 +1758,33 @@ async function renderJournal() {
     return;
   }
 
+  const isAdmin = currentIsAdmin;
+
   const rows = journalCache.map(r => `
     <tr>
       <td><strong>${r.client_name || '—'}</strong></td>
       <td>${r.client_phone || '—'}</td>
       <td class="jnl-date">${r.client_date || '—'}</td>
       <td class="jnl-total">${(r.total || 0).toLocaleString('ru-RU')} ₽</td>
+      ${isAdmin ? `<td class="jnl-emp">${r.employee_name || '—'}</td>` : ''}
       <td class="jnl-actions">
         <button class="btn-jnl-open" onclick="reopenKP(${r.id})">✏️ Открыть</button>
         <button class="btn-jnl-del"  onclick="deleteKP(${r.id})">✕</button>
       </td>
     </tr>`).join('');
 
+  const adminHeader = isAdmin
+    ? `<th style="width:15%">Сотрудник</th>` : '';
+
   container.innerHTML = `
     <table class="jnl-table">
       <thead><tr>
-        <th style="width:27%">ФИО клиента</th>
-        <th style="width:18%">Телефон</th>
-        <th style="width:13%">Дата КП</th>
-        <th class="right" style="width:18%">Итого к оплате</th>
-        <th style="width:24%"></th>
+        <th style="width:${isAdmin?'22%':'27%'}">ФИО клиента</th>
+        <th style="width:${isAdmin?'15%':'18%'}">Телефон</th>
+        <th style="width:${isAdmin?'11%':'13%'}">Дата КП</th>
+        <th class="right" style="width:${isAdmin?'14%':'18%'}">Итого к оплате</th>
+        ${adminHeader}
+        <th style="width:${isAdmin?'23%':'24%'}"></th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -1665,6 +1803,7 @@ function reopenKP(id) {
 
   document.getElementById('cl-name').value  = r.client_name !== '—' ? r.client_name  : '';
   document.getElementById('cl-phone').value = r.client_phone !== '—' ? r.client_phone : '';
+  // Восстанавливаем оригинальную дату КП
   if (r.client_date && r.client_date !== '—') {
     const parts = r.client_date.split('.');
     if (parts.length === 3) document.getElementById('cl-date').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
@@ -1695,13 +1834,13 @@ async function doPrint() {
    INIT
 ════════════════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  // Сегодняшняя дата
+  // Сегодняшняя дата + блокировка
   document.getElementById('cl-date').value = new Date().toISOString().split('T')[0];
+  lockDateField();
 
   // Сбрасывать подсветку при вводе
-  ['cl-name','cl-phone','cl-date'].forEach(id => {
+  ['cl-name','cl-phone'].forEach(id => {
     document.getElementById(id).addEventListener('input',  clearValidation);
-    document.getElementById(id).addEventListener('change', clearValidation);
   });
 
   // Запуск авторизации Supabase
