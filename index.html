@@ -451,6 +451,94 @@ table.items .td-del { width: 28px; text-align: center; }
 .jnl-total { font-weight: 700; color: var(--blue); text-align: right; }
 .jnl-emp   { color: #555; font-size: 13px; }
 
+/* ═══ ИНСТРУКЦИЯ (МОДАЛЬНОЕ ОКНО) ══════════════════════════════════════════ */
+.instr-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 500;
+  overflow-y: auto;
+  padding: 32px 16px;
+}
+.instr-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+.instr-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 780px;
+  width: 100%;
+  box-shadow: 0 8px 40px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+.instr-head {
+  background: var(--blue);
+  color: white;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.instr-head h2 { font-size: 16px; font-weight: 700; margin: 0; }
+.instr-close {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: white;
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.instr-close:hover { background: rgba(255,255,255,.35); }
+.instr-body { padding: 24px 28px 32px; }
+.instr-section { margin-bottom: 24px; }
+.instr-section h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  border-bottom: 2px solid var(--blue);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+.instr-body ol, .instr-body ul {
+  padding-left: 20px;
+  line-height: 1.75;
+  font-size: 13.5px;
+  color: #2a3a4a;
+}
+.instr-body li { margin-bottom: 4px; }
+.instr-tip {
+  background: #EBF7FD;
+  border-left: 3px solid var(--blue);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1A3A50;
+  margin-top: 10px;
+}
+.instr-warn {
+  background: #FEF8EC;
+  border-left: 3px solid #E6A817;
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #5a3e00;
+  margin-top: 10px;
+}
+.btn-instr {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.4);
+  color: white;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-instr:hover { background: rgba(255,255,255,.28); }
+
 /* Заблокированное поле даты */
 input[readonly] {
   background: #f0f5fa !important;
@@ -786,6 +874,7 @@ input[readonly] {
     <div class="logo">KDLINZA.RU <span>Конструктор коммерческого предложения</span></div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="user-pill"><span class="dot"></span><span id="user-email-display"></span></div>
+      <button class="btn-instr" onclick="openInstr()">📖 Инструкция</button>
       <button class="btn-jnl-hdr" onclick="openJournal()">📋 Журнал КП</button>
       <button class="btn-print-top" onclick="doPrint()">🖨️ Распечатать КП</button>
       <button class="btn-logout" onclick="doLogout()">Выйти</button>
@@ -957,6 +1046,112 @@ input[readonly] {
   </div>
   <div class="journal-body">
     <div id="journal-content"><!-- заполняется JS --></div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  ИНСТРУКЦИЯ                                                              -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="instr-overlay screen-only" id="instr-overlay" onclick="if(event.target===this)closeInstr()">
+  <div class="instr-modal">
+    <div class="instr-head">
+      <h2>📖 Инструкция по работе с конструктором КП</h2>
+      <button class="instr-close" onclick="closeInstr()">✕</button>
+    </div>
+    <div class="instr-body">
+
+      <div class="instr-section">
+        <h3>1. Вход в систему</h3>
+        <ol>
+          <li>Откройте сайт конструктора в браузере.</li>
+          <li>Введите свой <strong>логин</strong> (выдаётся администратором) и <strong>пароль</strong>.</li>
+          <li>Нажмите кнопку <strong>«Войти»</strong> или клавишу Enter.</li>
+          <li>В правом верхнем углу отобразится ваш логин — значит вход выполнен успешно.</li>
+        </ol>
+        <div class="instr-tip">💡 Если забыли пароль — обратитесь к администратору.</div>
+      </div>
+
+      <div class="instr-section">
+        <h3>2. Информация о клиенте</h3>
+        <ol>
+          <li>Заполните поле <strong>«ФИО клиента»</strong> — только кириллица, минимум фамилия и имя через пробел (например: Иванов Иван Иванович).</li>
+          <li>Введите <strong>телефон</strong> — система автоматически форматирует номер в вид +7 (XXX) XXX-XX-XX. Просто вводите цифры.</li>
+          <li><strong>Дата КП</strong> устанавливается автоматически и не редактируется.</li>
+        </ol>
+        <div class="instr-warn">⚠ Без заполнения ФИО и телефона распечатать КП невозможно.</div>
+      </div>
+
+      <div class="instr-section">
+        <h3>3. Раздел «Оправа»</h3>
+        <ol>
+          <li>Нажмите <strong>«+ Добавить оправу»</strong> — появится строка для ввода.</li>
+          <li>Введите название оправы и артикул в поле «Наименование».</li>
+          <li>Укажите <strong>цену</strong> в рублях (тысячи разделяются автоматически).</li>
+          <li>При необходимости укажите <strong>скидку в %</strong> — сумма скидки и итог рассчитаются автоматически.</li>
+          <li>Если клиент приносит свою оправу — нажмите кнопку <strong>«👓 Оправа клиента»</strong>. Цена будет 0, а расчёт услуги изготовления изменится автоматически.</li>
+          <li>Для удаления строки нажмите кнопку <strong>«×»</strong> справа.</li>
+        </ol>
+      </div>
+
+      <div class="instr-section">
+        <h3>4. Раздел «Очковые линзы»</h3>
+        <ol>
+          <li>Нажмите <strong>«+ Добавить линзы»</strong>.</li>
+          <li>Выберите <strong>тип линз</strong> из списка: «Очковые линзы» или «Очковые рецептурные линзы».</li>
+          <li>Выберите <strong>бренд</strong>: GENEX, Neolook, Nikon, RENZU, Essilor Stellest, YOUNGER.</li>
+          <li>Укажите <strong>положение линзы</strong>: OD (правый глаз), OS (левый глаз) или OD и OS (оба).</li>
+          <li>Введите <strong>наименование</strong>, <strong>цену</strong> и при необходимости <strong>скидку %</strong>.</li>
+          <li>Можно добавить несколько строк для разных линз.</li>
+        </ol>
+      </div>
+
+      <div class="instr-section">
+        <h3>5. Раздел «Услуги»</h3>
+        <ul>
+          <li><strong>«⚙️ Изготовление очков»</strong> — добавляет услугу с ценой, рассчитанной автоматически: 12% от суммы оправы и линз. Если выбрана «Оправа клиента» — 20% от стоимости линз.</li>
+          <li><strong>«🔧 Добавить ДСО»</strong> — дополнительное сервисное обслуживание, 5% от стоимости оправы и линз. Рассчитывается автоматически.</li>
+          <li><strong>«👓 Подбор оправы»</strong> — добавляет услугу «Подбор оправы специалистом» с ценой 0 (бесплатно).</li>
+          <li><strong>«👁️ Проверка зрения»</strong> — добавляет услугу «Проверка зрения оптометристом/врачём» с ценой 0.</li>
+          <li><strong>«+ Добавить услугу»</strong> — произвольная услуга с ручным вводом цены.</li>
+        </ul>
+        <div class="instr-tip">💡 Цены на «Изготовление» и «ДСО» пересчитываются автоматически при каждом изменении цен в оправе и линзах.</div>
+      </div>
+
+      <div class="instr-section">
+        <h3>6. Итоги</h3>
+        <ul>
+          <li>Панель <strong>«Итоги»</strong> справа обновляется в реальном времени.</li>
+          <li><strong>«Итого до скидки»</strong> — сумма всех позиций и услуг без учёта скидок.</li>
+          <li><strong>«Сумма скидки»</strong> — общая скидка по оправе и линзам.</li>
+          <li><strong>«Услуги»</strong> — итог по разделу услуг.</li>
+          <li><strong>«Итого к оплате»</strong> — финальная сумма для клиента.</li>
+        </ul>
+      </div>
+
+      <div class="instr-section">
+        <h3>7. Печать КП</h3>
+        <ol>
+          <li>Убедитесь, что заполнены ФИО, телефон и добавлена хотя бы одна оправа или линза.</li>
+          <li>Нажмите кнопку <strong>«🖨️ Распечатать КП»</strong> в шапке или в панели итогов.</li>
+          <li>КП автоматически сохранится в журнале и откроется диалог печати.</li>
+          <li>В диалоге печати выберите принтер или «Сохранить как PDF».</li>
+        </ol>
+        <div class="instr-warn">⚠ Цены в распечатанном КП действительны только <strong>3 календарных дня</strong> с даты выставления.</div>
+      </div>
+
+      <div class="instr-section">
+        <h3>8. Журнал КП</h3>
+        <ol>
+          <li>Нажмите кнопку <strong>«📋 Журнал КП»</strong> в шапке — откроется список всех ваших КП.</li>
+          <li>В журнале отображаются: ФИО клиента, телефон, дата КП, сумма к оплате.</li>
+          <li>Нажмите <strong>«✏️ Открыть»</strong> рядом с нужным КП, чтобы вернуться к его редактированию.</li>
+          <li>После изменений повторно нажмите «🖨️ Распечатать КП» — запись в журнале обновится (новая не создаётся).</li>
+          <li>Для создания нового КП нажмите <strong>«✏️ Создать коммерческое предложение»</strong> в верхней части журнала.</li>
+        </ol>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -1849,6 +2044,22 @@ async function doPrint() {
   updatePrint();
   window.print();
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ИНСТРУКЦИЯ
+════════════════════════════════════════════════════════════════════════════ */
+function openInstr() {
+  document.getElementById('instr-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeInstr() {
+  document.getElementById('instr-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+// Закрыть по Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeInstr();
+});
 
 /* ════════════════════════════════════════════════════════════════════════════
    INIT
