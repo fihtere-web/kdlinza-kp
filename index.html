@@ -230,6 +230,54 @@ table.items .td-del { width: 28px; text-align: center; }
   min-width: 0;
   font-family: Arial, sans-serif;
 }
+.req-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #E5A000;
+  border: 1px solid #c48800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.price-required::placeholder { color: #E5A000; font-style: italic; }
+.price-required:placeholder-shown { border-color: #E5A000 !important; background: #FFFBF0 !important; }
+.btn-svc-special-wrap {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.btn-svc-special-lbl {
+  width: 100%;
+  font-size: 11px;
+  color: var(--gray);
+  font-weight: 700;
+  letter-spacing: .3px;
+  margin-bottom: 2px;
+}
+.btn-add-row-special {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1.5px solid #E5A000;
+  background: #FFFBF0;
+  color: #7a5800;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.btn-add-row-special:hover { background: #fff3cc; }
 .price-auto {
   background: var(--blue-lt) !important;
   color: var(--blue) !important;
@@ -779,7 +827,7 @@ input[readonly] {
 .print-kp { display: none; }
 
 @media print {
-  @page { size: A4 portrait; margin: 13mm 14mm; }
+  @page { size: A4 portrait; margin: 14mm 20mm; }
 
   /* Force backgrounds to print */
   * {
@@ -1096,14 +1144,15 @@ input[readonly] {
         </div>
         <div class="card-body">
           <div class="tbl-wrap">
-            <table class="items" id="tbl-frame">
+            <table class="items" id="tbl-frame" style="min-width:660px;">
               <thead>
                 <tr>
-                  <th class="left" style="width:38%">Наименование оправы</th>
+                  <th class="left" style="width:18%">Бренд</th>
+                  <th class="left" style="width:22%">Наименование оправы</th>
                   <th style="width:12%">Цена, ₽</th>
                   <th style="width:9%">Скидка, %</th>
-                  <th style="width:12%">Скидка, ₽</th>
-                  <th style="width:13%">Итого, ₽</th>
+                  <th style="width:11%">Скидка, ₽</th>
+                  <th style="width:12%">Итого, ₽</th>
                   <th style="width:5%"></th>
                 </tr>
               </thead>
@@ -1111,7 +1160,7 @@ input[readonly] {
             </table>
           </div>
           <button class="btn-add-row" onclick="addFrameRow()">+ Добавить оправу</button>
-          <button class="btn-add-row btn-client-frame" onclick="addFrameRow('Оправа клиента (1 шт.)', '0', '0')" style="margin-left:8px; border-style:solid; background:var(--blue-lt);">👓 Оправа клиента</button>
+          <button class="btn-add-row btn-client-frame" onclick="addFrameRow('', 'Оправа клиента (1 шт.)', '0', '0')" style="margin-left:8px; border-style:solid; background:var(--blue-lt);">👓 Оправа клиента</button>
         </div>
       </div>
 
@@ -1123,17 +1172,18 @@ input[readonly] {
         </div>
         <div class="card-body">
           <div class="tbl-wrap">
-            <table class="items" id="tbl-lens" style="min-width:720px;">
+            <table class="items" id="tbl-lens" style="min-width:780px;">
               <thead>
                 <tr>
-                  <th class="left" style="width:18%">Тип линз</th>
-                  <th class="left" style="width:11%">Бренд</th>
-                  <th style="width:9%">Положение</th>
-                  <th class="left" style="width:17%">Наименование</th>
+                  <th class="left" style="width:15%">Тип линз</th>
+                  <th class="left" style="width:10%">Бренд</th>
+                  <th style="width:8%">Положение</th>
+                  <th style="width:5%">Кол-во</th>
+                  <th class="left" style="width:14%">Наименование</th>
                   <th style="width:9%">Цена, ₽</th>
                   <th style="width:7%">Скидка, %</th>
-                  <th style="width:9%">Скидка, ₽</th>
-                  <th style="width:9%">Итого, ₽</th>
+                  <th style="width:8%">Скидка, ₽</th>
+                  <th style="width:8%">Итого, ₽</th>
                   <th style="width:4%"></th>
                 </tr>
               </thead>
@@ -1169,6 +1219,14 @@ input[readonly] {
             <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addDsoRow()">🔧 Добавить ДСО</button>
             <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addSvcRow('Подбор оправы специалистом','0')">👓 Подбор оправы</button>
             <button class="btn-add-row" style="border-style:solid;background:var(--blue-lt);" onclick="addSvcRow('Проверка зрения оптометристом/врачём','0')">👁️ Проверка зрения</button>
+          </div>
+          <div class="btn-svc-special-wrap">
+            <div class="btn-svc-special-lbl">📋 Опции, доступные при заказе линз (цена обязательна):</div>
+            <button class="btn-add-row-special" onclick="addSpecialSvcRow('Диаметр сверх указанного в каталоге диапазона')">📐 Диаметр</button>
+            <button class="btn-add-row-special" onclick="addSpecialSvcRow('Окрашивание в цвета, указанные в каталоге')">🎨 Окрашивание</button>
+            <button class="btn-add-row-special" onclick="addSpecialSvcRow('Призмы свыше 5 пр.дптр')">🔺 Призмы</button>
+            <button class="btn-add-row-special" onclick="addSpecialSvcRow('Рефракция (сфера) сверх указанного в каталоге диапазона')">🔵 Реф. (сфера)</button>
+            <button class="btn-add-row-special" onclick="addSpecialSvcRow('Рефракция (цилиндр) свыше 6.00 дптр.')">🔴 Реф. (цилиндр)</button>
           </div>
         </div>
       </div>
@@ -1302,7 +1360,8 @@ input[readonly] {
         <h3>5. Раздел «Оправа»</h3>
         <ol>
           <li>Нажмите <strong>«+ Добавить оправу»</strong> — появится строка для ввода.</li>
-          <li>Введите название оправы и артикул в поле «Наименование».</li>
+          <li>В поле <strong>«Бренд»</strong> начните вводить название — система подскажет из списка 196 брендов. Можно выбрать из списка или ввести вручную.</li>
+          <li>Введите название оправы и артикул в поле <strong>«Наименование»</strong>.</li>
           <li>Укажите <strong>цену</strong> в рублях (тысячи разделяются автоматически).</li>
           <li>При необходимости укажите <strong>скидку в %</strong> — сумма скидки и итог рассчитаются автоматически.</li>
           <li>Если клиент приносит свою оправу — нажмите кнопку <strong>«👓 Оправа клиента»</strong>. Цена будет 0, а расчёт услуги изготовления изменится автоматически.</li>
@@ -1315,9 +1374,10 @@ input[readonly] {
         <ol>
           <li>Нажмите <strong>«+ Добавить линзы»</strong>.</li>
           <li>Выберите <strong>тип линз</strong>: «Очковые линзы» или «Очковые рецептурные линзы».</li>
-          <li>Выберите <strong>бренд</strong>: GENEX, Neolook, Nikon, RENZU, Essilor Stellest, YOUNGER.</li>
+          <li>Выберите <strong>бренд линз</strong>: GENEX, Neolook, Nikon, RENZU, Essilor Stellest, YOUNGER.</li>
           <li>Укажите <strong>положение линзы</strong>: OD (правый глаз), OS (левый глаз) или OD и OS (оба).</li>
-          <li>Введите <strong>наименование</strong>, <strong>цену</strong> и при необходимости <strong>скидку %</strong>.</li>
+          <li>Укажите <strong>количество (Кол-во)</strong> — по умолчанию 1. Итоговая сумма рассчитывается как цена × кол-во.</li>
+          <li>Введите <strong>наименование</strong>, <strong>цену за единицу</strong> и при необходимости <strong>скидку %</strong>.</li>
           <li>Можно добавить несколько строк для разных линз.</li>
         </ol>
       </div>
@@ -1425,11 +1485,12 @@ input[readonly] {
     <table class="kp-tbl" id="pr-frame-tbl">
       <thead>
         <tr>
-          <th class="left" style="width:40%">Наименование оправы</th>
+          <th class="left" style="width:18%">Бренд</th>
+          <th class="left" style="width:26%">Наименование оправы</th>
           <th style="width:13%">Цена, ₽</th>
           <th style="width:10%">Скидка, %</th>
-          <th style="width:13%">Скидка, ₽</th>
-          <th style="width:13%">Итого, ₽</th>
+          <th style="width:12%">Скидка, ₽</th>
+          <th style="width:12%">Итого, ₽</th>
         </tr>
       </thead>
       <tbody id="pr-frame-body"></tbody>
@@ -1445,14 +1506,15 @@ input[readonly] {
     <table class="kp-tbl" id="pr-lens-tbl">
       <thead>
         <tr>
-          <th class="left" style="width:17%">Тип линз</th>
-          <th class="left" style="width:10%">Бренд</th>
-          <th style="width:9%">Положение</th>
-          <th class="left" style="width:16%">Наименование</th>
-          <th style="width:9%">Цена, ₽</th>
+          <th class="left" style="width:15%">Тип линз</th>
+          <th class="left" style="width:9%">Бренд</th>
+          <th style="width:8%">Положение</th>
+          <th style="width:5%">Кол-во</th>
+          <th class="left" style="width:13%">Наименование</th>
+          <th style="width:9%">Цена ед., ₽</th>
           <th style="width:8%">Скидка, %</th>
-          <th style="width:10%">Скидка, ₽</th>
-          <th style="width:10%">Итого, ₽</th>
+          <th style="width:9%">Скидка, ₽</th>
+          <th style="width:9%">Итого, ₽</th>
         </tr>
       </thead>
       <tbody id="pr-lens-body"></tbody>
@@ -1535,14 +1597,15 @@ function unformatPrice(el) {
 /* ════════════════════════════════════════════════════════════════════════════
    ADD ROWS
 ════════════════════════════════════════════════════════════════════════════ */
-function addFrameRow(name='', price='', disc='') {
+function addFrameRow(brand='', name='', price='', disc='') {
   const id = ++rowId;
   const fmtP = parseNum(price) > 0 ? parseNum(price).toLocaleString('ru-RU') : '';
   const tbody = document.getElementById('frame-rows');
   const tr = document.createElement('tr');
   tr.id = 'fr-' + id;
   tr.innerHTML = `
-    <td><input type="text" placeholder="Название оправы, артикул" value="${name}" oninput="calcRow(this)"></td>
+    <td><input type="text" list="frame-brands-list" placeholder="Бренд" value="${brand}" class="brand-in" oninput="calcRow(this)" autocomplete="off"></td>
+    <td><input type="text" placeholder="Название оправы, артикул" value="${name}" class="name-in" oninput="calcRow(this)"></td>
     <td><input type="text" placeholder="0" value="${fmtP}" oninput="calcRow(this)" onblur="formatPrice(this)" onfocus="unformatPrice(this)" class="price-in" style="text-align:right;"></td>
     <td><input type="number" placeholder="0" min="0" max="100" value="${disc}" oninput="calcRow(this)" class="disc-in"></td>
     <td class="td-auto td-disc" id="fr-disc-${id}">—</td>
@@ -1562,7 +1625,7 @@ function selOpts(arr, selected) {
     arr.map(v => `<option value="${v}"${v === selected ? ' selected' : ''}>${v}</option>`).join('');
 }
 
-function addLensRow(type='', brand='', pos='', name='', price='', disc='') {
+function addLensRow(type='', brand='', pos='', name='', qty=1, price='', disc='') {
   const id = ++rowId;
   const tbody = document.getElementById('lens-rows');
   const tr = document.createElement('tr');
@@ -1571,7 +1634,8 @@ function addLensRow(type='', brand='', pos='', name='', price='', disc='') {
     <td><select class="type-sel" onchange="calcRow(this)">${selOpts(LENS_TYPES, type)}</select></td>
     <td><select class="brand-sel" onchange="calcRow(this)">${selOpts(LENS_BRANDS, brand)}</select></td>
     <td><select class="pos-sel" onchange="calcRow(this)" style="text-align:center;">${selOpts(LENS_POS, pos)}</select></td>
-    <td><input type="text" placeholder="Наименование" value="${name}" oninput="calcRow(this)"></td>
+    <td><input type="number" placeholder="1" min="1" value="${qty || 1}" oninput="calcRow(this)" class="qty-in" style="text-align:center;width:100%"></td>
+    <td><input type="text" placeholder="Наименование" value="${name}" class="name-in" oninput="calcRow(this)"></td>
     <td><input type="text" placeholder="0" value="${parseNum(price) > 0 ? parseNum(price).toLocaleString('ru-RU') : ''}" oninput="calcRow(this)" onblur="formatPrice(this)" onfocus="unformatPrice(this)" class="price-in" style="text-align:right;"></td>
     <td><input type="number" placeholder="0" min="0" max="100" value="${disc}" oninput="calcRow(this)" class="disc-in"></td>
     <td class="td-auto td-disc" id="lr-disc-${id}">—</td>
@@ -1586,13 +1650,14 @@ function addLensRow(type='', brand='', pos='', name='', price='', disc='') {
 function getSvcBase() {
   let frameTotal = 0, lensTotal = 0, hasClientFrame = false;
   document.querySelectorAll('#frame-rows tr').forEach(tr => {
-    const nm = tr.querySelector('input[type="text"]')?.value || '';
+    const nm = tr.querySelector('.name-in')?.value || '';
     const pr = parseNum(tr.querySelector('.price-in')?.value);
     frameTotal += pr;
     if (nm.toLowerCase().includes('оправа клиента')) hasClientFrame = true;
   });
   document.querySelectorAll('#lens-rows tr').forEach(tr => {
-    lensTotal += parseNum(tr.querySelector('.price-in')?.value);
+    const qty = parseNum(tr.querySelector('.qty-in')?.value) || 1;
+    lensTotal += parseNum(tr.querySelector('.price-in')?.value) * qty;
   });
   return { frameTotal, lensTotal, hasClientFrame, allTotal: frameTotal + lensTotal };
 }
@@ -1668,6 +1733,27 @@ function addSvcRow(name='', price='') {
   calcTotals();
 }
 
+function addSpecialSvcRow(label, price='') {
+  const id = ++rowId;
+  const fmtP = parseNum(price) > 0 ? parseNum(price).toLocaleString('ru-RU') : '';
+  const tbody = document.getElementById('svc-rows');
+  const tr = document.createElement('tr');
+  tr.id = 'sr-' + id;
+  tr.className = 'svc-special';
+  tr.innerHTML = `
+    <td>
+      <div class="svc-name-wrap">
+        <input type="text" class="svc-name-auto" value="${label}" readonly>
+        <span class="req-badge" title="Цена обязательна для печати">₽ !</span>
+      </div>
+    </td>
+    <td><input type="text" placeholder="⚠ укажите цену" value="${fmtP}" oninput="calcTotals()" onblur="formatPrice(this)" onfocus="unformatPrice(this)" class="price-in price-required" style="text-align:right;"></td>
+    <td class="td-del"><button class="btn-del" onclick="delRow('sr-${id}')">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  calcTotals();
+}
+
 function delRow(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
@@ -1681,7 +1767,10 @@ function calcRow(input) {
   const tr = input.closest('tr');
   const priceIn = tr.querySelector('.price-in');
   const discIn  = tr.querySelector('.disc-in');
-  const price = parseNum(priceIn ? priceIn.value : '0');
+  const qtyIn   = tr.querySelector('.qty-in');
+  const qty     = qtyIn ? (parseNum(qtyIn.value) || 1) : 1;
+  const priceEach = parseNum(priceIn ? priceIn.value : '0');
+  const price   = priceEach * qty;
   const discPct = parseNum(discIn ? discIn.value : '0');
   const discRub = Math.round(price * discPct / 100);
   const total   = price - discRub;
@@ -1695,7 +1784,7 @@ function calcRow(input) {
   const totalCell = document.getElementById(`${prefix}-total-${num}`);
 
   if (discCell)  discCell.textContent  = discPct > 0 ? fmtDisc(-discRub) : '—';
-  if (totalCell) totalCell.textContent = price > 0 ? fmt(total) : '—';
+  if (totalCell) totalCell.textContent = priceEach > 0 ? fmt(total) : '—';
 
   calcTotals();
 }
@@ -1719,7 +1808,9 @@ function calcTotals() {
 
   // Lens rows
   document.querySelectorAll('#lens-rows tr').forEach(tr => {
-    const price   = parseNum(tr.querySelector('.price-in')?.value);
+    const priceEach = parseNum(tr.querySelector('.price-in')?.value);
+    const qty     = parseNum(tr.querySelector('.qty-in')?.value) || 1;
+    const price   = priceEach * qty;
     const discPct = parseNum(tr.querySelector('.disc-in')?.value);
     const discRub = Math.round(price * discPct / 100);
     sumBefore += price;
@@ -1763,16 +1854,17 @@ function updatePrint() {
   fb.innerHTML = '';
   let fHasData = false;
   document.querySelectorAll('#frame-rows tr').forEach((tr, i) => {
-    const inputs = tr.querySelectorAll('input');
-    const name   = inputs[0]?.value || '';
-    const price  = parseNum(inputs[1]?.value);
-    const discPct= parseNum(inputs[2]?.value);
+    const brand  = tr.querySelector('.brand-in')?.value  || '';
+    const name   = tr.querySelector('.name-in')?.value   || '';
+    const price  = parseNum(tr.querySelector('.price-in')?.value);
+    const discPct= parseNum(tr.querySelector('.disc-in')?.value);
     const discRub= Math.round(price * discPct / 100);
     const total  = price - discRub;
     if (!name && !price) return;
     fHasData = true;
     const bg = i % 2 === 1 ? ' style="background:#F4F9FD"' : '';
     fb.innerHTML += `<tr${bg}>
+      <td>${brand}</td>
       <td>${name}</td>
       <td class="right">${price ? price.toLocaleString('ru-RU') : ''}</td>
       <td class="center disc-pct">${discPct ? discPct + '%' : '—'}</td>
@@ -1787,27 +1879,29 @@ function updatePrint() {
   lb.innerHTML = '';
   let lHasData = false;
   document.querySelectorAll('#lens-rows tr').forEach((tr, i) => {
-    const type   = tr.querySelector('.type-sel')?.value  || '';
-    const brand  = tr.querySelector('.brand-sel')?.value || '';
-    const pos    = tr.querySelector('.pos-sel')?.value   || '';
-    const inputs = tr.querySelectorAll('input');
-    const name   = inputs[0]?.value || '';
-    const price  = parseNum(inputs[1]?.value);
-    const discPct= parseNum(inputs[2]?.value);
-    const discRub= Math.round(price * discPct / 100);
-    const total  = price - discRub;
-    if (!type && !name && !price) return;
+    const type      = tr.querySelector('.type-sel')?.value   || '';
+    const brand     = tr.querySelector('.brand-sel')?.value  || '';
+    const pos       = tr.querySelector('.pos-sel')?.value    || '';
+    const qty       = parseNum(tr.querySelector('.qty-in')?.value) || 1;
+    const name      = tr.querySelector('.name-in')?.value    || '';
+    const priceEach = parseNum(tr.querySelector('.price-in')?.value);
+    const price     = priceEach * qty;
+    const discPct   = parseNum(tr.querySelector('.disc-in')?.value);
+    const discRub   = Math.round(price * discPct / 100);
+    const total     = price - discRub;
+    if (!type && !name && !priceEach) return;
     lHasData = true;
     const bg = i % 2 === 1 ? ' style="background:#F4F9FD"' : '';
     lb.innerHTML += `<tr${bg}>
       <td>${type}</td>
       <td>${brand}</td>
       <td class="center">${pos || '—'}</td>
+      <td class="center">${qty}</td>
       <td>${name}</td>
-      <td class="right">${price ? price.toLocaleString('ru-RU') : ''}</td>
+      <td class="right">${priceEach ? priceEach.toLocaleString('ru-RU') : ''}</td>
       <td class="center disc-pct">${discPct ? discPct + '%' : '—'}</td>
       <td class="right">${discRub > 0 ? '− ' + discRub.toLocaleString('ru-RU') : '—'}</td>
-      <td class="right total-col">${price ? total.toLocaleString('ru-RU') : '—'}</td>
+      <td class="right total-col">${priceEach ? total.toLocaleString('ru-RU') : '—'}</td>
     </tr>`;
   });
   document.getElementById('pr-lens-sec').style.display = lHasData ? '' : 'none';
@@ -1823,8 +1917,10 @@ function updatePrint() {
     if (!name && !price) return;
     sHasData = true;
     const bg = i % 2 === 1 ? ' style="background:#F4F9FD"' : '';
-    const isAuto = tr.classList.contains('auto-izg') || tr.classList.contains('auto-dso');
-    const priceStr = !isAuto && price === 0 && name ? 'бесплатно' :
+    const isAuto    = tr.classList.contains('auto-izg') || tr.classList.contains('auto-dso');
+    const isSpecial = tr.classList.contains('svc-special');
+    const priceStr = isSpecial ? (price > 0 ? price.toLocaleString('ru-RU') + ' ₽' : '⚠ цена не указана') :
+                     !isAuto && price === 0 && name ? 'бесплатно' :
                      price > 0 ? price.toLocaleString('ru-RU') + ' ₽' :
                      isAuto   ? '0 ₽' : '—';
     sb.innerHTML += `<tr${bg}>
@@ -1836,9 +1932,17 @@ function updatePrint() {
 
   // Summary
   let sumBefore = 0, sumDisc = 0, sumSvc = 0;
-  document.querySelectorAll('#frame-rows tr, #lens-rows tr').forEach(tr => {
+  document.querySelectorAll('#frame-rows tr').forEach(tr => {
     const price   = parseNum(tr.querySelector('.price-in')?.value);
     const discPct = parseNum(tr.querySelector('.disc-in')?.value);
+    sumBefore += price;
+    sumDisc   += Math.round(price * discPct / 100);
+  });
+  document.querySelectorAll('#lens-rows tr').forEach(tr => {
+    const priceEach = parseNum(tr.querySelector('.price-in')?.value);
+    const qty       = parseNum(tr.querySelector('.qty-in')?.value) || 1;
+    const price     = priceEach * qty;
+    const discPct   = parseNum(tr.querySelector('.disc-in')?.value);
     sumBefore += price;
     sumDisc   += Math.round(price * discPct / 100);
   });
@@ -1982,6 +2086,19 @@ function validateKP() {
     errors.push('Добавьте оправу и/или линзы');
   }
 
+  // Проверка цен у специальных надбавок
+  let missingSpecialPrice = false;
+  document.querySelectorAll('tr.svc-special').forEach(tr => {
+    const priceIn = tr.querySelector('.price-in');
+    if (!priceIn || parseNum(priceIn.value) <= 0) {
+      priceIn?.classList.add('field-error');
+      missingSpecialPrice = true;
+    }
+  });
+  if (missingSpecialPrice) {
+    errors.push('Укажите цену для всех надбавок (выделены оранжевым)');
+  }
+
   if (errors.length > 0) {
     const list = document.getElementById('val-list');
     list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
@@ -2071,32 +2188,33 @@ async function saveKPToJournal() {
 
   const frames = [], lenses = [], services = [];
   document.querySelectorAll('#frame-rows tr').forEach(tr => {
-    const inputs = tr.querySelectorAll('input');
-    const name = inputs[0]?.value || '';
-    const price = parseNum(inputs[1]?.value);
+    const brand = tr.querySelector('.brand-in')?.value  || '';
+    const name  = tr.querySelector('.name-in')?.value   || '';
+    const price = parseNum(tr.querySelector('.price-in')?.value);
     const disc  = parseNum(tr.querySelector('.disc-in')?.value);
-    if (name || price) frames.push({ name, price, disc });
+    if (name || price) frames.push({ brand, name, price, disc });
   });
   document.querySelectorAll('#lens-rows tr').forEach(tr => {
     const type  = tr.querySelector('.type-sel')?.value  || '';
     const brand = tr.querySelector('.brand-sel')?.value || '';
     const pos   = tr.querySelector('.pos-sel')?.value   || '';
-    const inputs = tr.querySelectorAll('input');
-    const name  = inputs[0]?.value || '';
-    const price = parseNum(inputs[1]?.value);
-    const disc  = parseNum(inputs[2]?.value);
-    if (type || name || price) lenses.push({ type, brand, pos, name, price, disc });
+    const qty   = parseNum(tr.querySelector('.qty-in')?.value) || 1;
+    const name  = tr.querySelector('.name-in')?.value   || '';
+    const price = parseNum(tr.querySelector('.price-in')?.value);
+    const disc  = parseNum(tr.querySelector('.disc-in')?.value);
+    if (type || name || price) lenses.push({ type, brand, pos, name, qty, price, disc });
   });
   document.querySelectorAll('#svc-rows tr').forEach(tr => {
-    const inputs = tr.querySelectorAll('input');
-    const name  = inputs[0]?.value || '';
-    const price = parseNum(inputs[1]?.value);
-    if (name || price) services.push({ name, price });
+    const inputs  = tr.querySelectorAll('input');
+    const name    = inputs[0]?.value || '';
+    const price   = parseNum(inputs[1]?.value);
+    const special = tr.classList.contains('svc-special');
+    if (name || price) services.push({ name, price, special });
   });
 
   let sumBefore = 0, sumDisc = 0, sumSvc = 0;
-  frames.forEach(r   => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
-  lenses.forEach(r   => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
+  frames.forEach(r => { sumBefore += r.price; sumDisc += Math.round(r.price * r.disc / 100); });
+  lenses.forEach(r => { const p = r.price * (r.qty || 1); sumBefore += p; sumDisc += Math.round(p * r.disc / 100); });
   services.forEach(r => { sumSvc += r.price; });
   const grandTotal = sumBefore - sumDisc + sumSvc;
 
@@ -2292,9 +2410,12 @@ function reissueKP(id) {
   document.getElementById('lens-rows').innerHTML  = '';
   document.getElementById('svc-rows').innerHTML   = '';
 
-  (r.data.frames   || []).forEach(f => addFrameRow(f.name, f.price > 0 ? String(f.price) : '', String(f.disc || 0)));
-  (r.data.lenses   || []).forEach(l => addLensRow(l.type || '', l.brand || '', l.pos || '', l.name || '', l.price > 0 ? String(l.price) : '', String(l.disc || 0)));
-  (r.data.services || []).forEach(s => addSvcRow(s.name || '', s.price > 0 ? String(s.price) : ''));
+  (r.data.frames   || []).forEach(f => addFrameRow(f.brand || '', f.name, f.price > 0 ? String(f.price) : '', String(f.disc || 0)));
+  (r.data.lenses   || []).forEach(l => addLensRow(l.type || '', l.brand || '', l.pos || '', l.name || '', l.qty || 1, l.price > 0 ? String(l.price) : '', String(l.disc || 0)));
+  (r.data.services || []).forEach(s => {
+    if (s.special) addSpecialSvcRow(s.name || '', s.price > 0 ? String(s.price) : '');
+    else addSvcRow(s.name || '', s.price > 0 ? String(s.price) : '');
+  });
 
   calcTotals();
 }
@@ -2323,9 +2444,12 @@ function reopenKP(id) {
   document.getElementById('lens-rows').innerHTML  = '';
   document.getElementById('svc-rows').innerHTML   = '';
 
-  (r.data.frames   || []).forEach(f => addFrameRow(f.name, f.price > 0 ? String(f.price) : '', String(f.disc || 0)));
-  (r.data.lenses   || []).forEach(l => addLensRow(l.type || '', l.brand || '', l.pos || '', l.name || '', l.price > 0 ? String(l.price) : '', String(l.disc || 0)));
-  (r.data.services || []).forEach(s => addSvcRow(s.name || '', s.price > 0 ? String(s.price) : ''));
+  (r.data.frames   || []).forEach(f => addFrameRow(f.brand || '', f.name, f.price > 0 ? String(f.price) : '', String(f.disc || 0)));
+  (r.data.lenses   || []).forEach(l => addLensRow(l.type || '', l.brand || '', l.pos || '', l.name || '', l.qty || 1, l.price > 0 ? String(l.price) : '', String(l.disc || 0)));
+  (r.data.services || []).forEach(s => {
+    if (s.special) addSpecialSvcRow(s.name || '', s.price > 0 ? String(s.price) : '');
+    else addSvcRow(s.name || '', s.price > 0 ? String(s.price) : '');
+  });
 
   calcTotals();
 }
@@ -2373,5 +2497,213 @@ document.addEventListener('DOMContentLoaded', () => {
   initAuth();
 });
 </script>
+
+<datalist id="frame-brands-list">
+  <option value="7TH STREET">
+  <option value="ADIDAS ORIGINAL">
+  <option value="ADIDAS SPORT">
+  <option value="AGIO">
+  <option value="ALLPOETS">
+  <option value="AMSHAR">
+  <option value="ANA HICKMANN">
+  <option value="ARMANI EXCHANGE">
+  <option value="BABYLOOK">
+  <option value="BALENCIAGA">
+  <option value="BANISS">
+  <option value="BARBIE">
+  <option value="BEN.X">
+  <option value="BLANCIA">
+  <option value="BLUMARINE">
+  <option value="BMW">
+  <option value="BOSS">
+  <option value="BOSSCLUB">
+  <option value="BULGET">
+  <option value="BUSSOLA">
+  <option value="CALVIN KLEIN">
+  <option value="CALVIN KLEIN JEANS">
+  <option value="CAROLINNA HERRERA">
+  <option value="CARRERA">
+  <option value="CATERPILLAR">
+  <option value="CELINE">
+  <option value="CERRUTI 1881">
+  <option value="CHARLES STONE">
+  <option value="CHLOE">
+  <option value="CHOPARD">
+  <option value="CHRISTIAN LACROIX">
+  <option value="COLANDO">
+  <option value="CONVERSE">
+  <option value="DACCHI">
+  <option value="DANIEL HECHTER">
+  <option value="DAVID BECKHAM">
+  <option value="DAVIDOFF">
+  <option value="DESPADA">
+  <option value="DESPADA CLUB">
+  <option value="DIESEL">
+  <option value="DIOR">
+  <option value="DKNY">
+  <option value="DOLCE &amp; GABBANA">
+  <option value="DOLCE VITA">
+  <option value="DSQUARED2">
+  <option value="ELFSPIRIT">
+  <option value="ELNINO">
+  <option value="ELNINO SILICON">
+  <option value="EMMA MOSER">
+  <option value="EMPORIO ARMANI">
+  <option value="ENNI MARCO">
+  <option value="ENNI MARCO DUTCH TOUCH IV">
+  <option value="ENNI MARCO EMILIA">
+  <option value="ENNI MARCO IV">
+  <option value="ENNI MARCO SPECTRUM">
+  <option value="ESTILO">
+  <option value="ETNIA BARCELONA 4">
+  <option value="ETNIA BARCELONA 5">
+  <option value="ETNIA BARCELONA 7">
+  <option value="EXCLUSIVE">
+  <option value="EYECROXX">
+  <option value="FENDI">
+  <option value="FERELLI">
+  <option value="FERRAGAMO">
+  <option value="FILA">
+  <option value="FILOS">
+  <option value="FISHERPRICE">
+  <option value="FURLA">
+  <option value="G5G6">
+  <option value="GANT">
+  <option value="GENEX">
+  <option value="GIGISTUDIOS">
+  <option value="GIORGIO ARMANI">
+  <option value="GIVENCHY">
+  <option value="GLODIATOR">
+  <option value="GUCCI">
+  <option value="GUESS">
+  <option value="HACKETT">
+  <option value="HARLEY-DAVIDSON">
+  <option value="HEMME PARIS">
+  <option value="HERMOSSA">
+  <option value="HICKMANN">
+  <option value="HOT WHEELS">
+  <option value="HUGO">
+  <option value="HUGO BOSS">
+  <option value="JAGUAR">
+  <option value="JIMMY CHOO">
+  <option value="JUICY COUTURE">
+  <option value="JUNIORLOOK">
+  <option value="JUST CAVALLI">
+  <option value="KARL LAGERFELD">
+  <option value="KENZO">
+  <option value="LA STELLA">
+  <option value="LACOSTE">
+  <option value="LANCEL">
+  <option value="LANVIN">
+  <option value="LENNY LANCE COLLECTION">
+  <option value="LEVI'S">
+  <option value="LIFE KIDS">
+  <option value="LOOL 6">
+  <option value="LOOL 7">
+  <option value="LOOL 9">
+  <option value="MARC JACOBS">
+  <option value="MARC JACOBS RUNWAY">
+  <option value="MARCIANO">
+  <option value="MARIO ROSSI">
+  <option value="MARIO ROSSI COLLEZZIONE">
+  <option value="MARIO ROSSI COLORE">
+  <option value="MARIO ROSSI GIOVANI">
+  <option value="MAX &amp; CO">
+  <option value="MAX MARA">
+  <option value="MC">
+  <option value="MELORSCH">
+  <option value="MEREL">
+  <option value="MIEN">
+  <option value="MIRELLA MORI">
+  <option value="MISSONI">
+  <option value="MODELO">
+  <option value="MONCLER">
+  <option value="MONTBLANC">
+  <option value="MOSCHINO">
+  <option value="MOSCHINO LOVE">
+  <option value="NANO 3.0">
+  <option value="NANO AIRLINE">
+  <option value="NANO BABY">
+  <option value="NANO BABY 3.0">
+  <option value="NANO BASICS">
+  <option value="NANO GLOW 3.0">
+  <option value="NANO SPONGEBOB">
+  <option value="NEOLOOK">
+  <option value="NEOLOOK GLAMOUR">
+  <option value="NICOLETA BUCHI">
+  <option value="NIKITANA">
+  <option value="NIKITANA (ДЕТСК.)">
+  <option value="NIKITANA SILICON DIOXIDE">
+  <option value="NORTH OPTICAL">
+  <option value="OPAL PREMIUM">
+  <option value="PANORAMA KIDS">
+  <option value="PEPE JEANS">
+  <option value="PIERRE CARDIN">
+  <option value="POLAROID">
+  <option value="POLAROID KIDS">
+  <option value="Polaroid оправы">
+  <option value="POLICE">
+  <option value="PORTE VERTE">
+  <option value="PRADA">
+  <option value="PRADA LINEA ROSSA">
+  <option value="PROUD">
+  <option value="PURE">
+  <option value="RACURS">
+  <option value="RAY-BAN META оправы">
+  <option value="RAY-BAN VISTA">
+  <option value="Rayban оправы">
+  <option value="REVLON">
+  <option value="ROBERTO CAVALLI">
+  <option value="RODENSTOCK">
+  <option value="ROLLES">
+  <option value="ROSEHIER">
+  <option value="RUUD VAN DYKE">
+  <option value="RYE&amp;LYE">
+  <option value="SAFILO">
+  <option value="SAFILO BURATTO">
+  <option value="SAFILO BUSSOLA">
+  <option value="SAFILO BUSSOLO">
+  <option value="SAFILO CALIBRO">
+  <option value="SAFILO CANALINO">
+  <option value="SAFILO CERCHIO">
+  <option value="SAFILO FILO">
+  <option value="SAFILO FORGIA">
+  <option value="SAFILO LAMINA">
+  <option value="SAFILO LENTE">
+  <option value="SAFILO LINEA T">
+  <option value="SAFILO REGISTRO">
+  <option value="SAFILO TRATTO">
+  <option value="SAINT LAURENT">
+  <option value="SAREMO">
+  <option value="SECG">
+  <option value="SEIKO">
+  <option value="SFEROFLEX">
+  <option value="SILHOUETTE">
+  <option value="SKECHERS">
+  <option value="ST.LOUISE">
+  <option value="SWAROVSKI">
+  <option value="SWING">
+  <option value="T-CHARGE">
+  <option value="TED BAKER">
+  <option value="TEMPO">
+  <option value="TIMBERLAND">
+  <option value="TOM FORD">
+  <option value="TOMMY HILFIGER">
+  <option value="TOMMY JEANS">
+  <option value="TRUSSARDI">
+  <option value="TWINSET">
+  <option value="VALENTIN YUDASHKIN">
+  <option value="VENTO">
+  <option value="VENTOE">
+  <option value="VERSACE">
+  <option value="VICTORY">
+  <option value="VIZZINI">
+  <option value="VOGUE">
+  <option value="VYF">
+  <option value="WILLIAM MORRIS BLACK LABEL">
+  <option value="WILLIAM MORRIS GALLERY">
+  <option value="WILLIAM MORRIS LONDON">
+  <option value="ZITRONE">
+</datalist>
 </body>
 </html>
