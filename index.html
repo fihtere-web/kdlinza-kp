@@ -642,6 +642,19 @@ input[readonly] {
   transition: background .12s;
 }
 .btn-jnl-open:hover { background: var(--blue-dk); }
+.btn-jnl-reissue {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: background .12s;
+}
+.btn-jnl-reissue:hover { background: #c8e6c9; }
 .btn-jnl-del {
   background: none;
   color: #ccc;
@@ -671,6 +684,98 @@ input[readonly] {
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  PRINT КП                                                                  */
 /* ══════════════════════════════════════════════════════════════════════════ */
+/* ═══ RESPONSIVE — TABLET (≤ 900px) ════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .app-body {
+    grid-template-columns: 1fr;
+    margin: 16px auto 32px;
+  }
+  .totals-panel { position: static; }
+  .client-grid { grid-template-columns: 1fr 1fr; }
+  .journal-filters { top: 104px; }
+}
+
+/* ═══ RESPONSIVE — MOBILE (≤ 600px) ════════════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* Header */
+  .app-header {
+    height: auto;
+    min-height: 48px;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .app-header .logo { font-size: 14px; }
+  .app-header .logo span { display: none; }
+  .app-header > div { flex-wrap: wrap; gap: 4px; }
+  .user-pill { font-size: 11px; padding: 3px 8px 3px 6px; }
+  .btn-instr    { padding: 5px 8px;  font-size: 11px; }
+  .btn-jnl-hdr  { padding: 5px 8px;  font-size: 11px; }
+  .btn-print-top{ padding: 5px 9px;  font-size: 11px; }
+  .btn-logout   { padding: 5px 8px;  font-size: 11px; }
+
+  /* Body */
+  .app-body { padding: 0 8px; gap: 10px; margin: 10px 0 24px; }
+  .card-body { padding: 10px; }
+
+  /* Client fields — 1 column */
+  .client-grid { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Service buttons — smaller */
+  .btn-add-row  { padding: 6px 10px; font-size: 11px; }
+  .btn-svc-wrap { gap: 5px; }
+
+  /* Totals panel */
+  .total-main .t-val { font-size: 20px; }
+
+  /* Validation toast */
+  .val-toast { right: 8px; left: 8px; max-width: none; font-size: 12px; }
+
+  /* Journal header — no sticky on mobile, it wraps */
+  .journal-header {
+    height: auto;
+    min-height: 44px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+    position: static;
+  }
+  .journal-header .jh-title { font-size: 13px; }
+  .btn-new-kp { padding: 6px 12px; font-size: 12px; }
+
+  /* Journal filters — stack vertically, no sticky */
+  .journal-filters {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .jf-group  { flex-wrap: wrap; gap: 6px; }
+  .jf-sep    { display: none; }
+  .jf-search { min-width: 100%; }
+  .jnl-count { margin-left: 0; }
+
+  /* Journal body — horizontal scroll for table */
+  .journal-body { padding: 0 8px; margin: 12px auto 24px; overflow-x: auto; }
+  .jnl-table { font-size: 12px; min-width: 520px; }
+  .jnl-table th, .jnl-table td { padding: 8px 8px; }
+  .jnl-actions { white-space: nowrap; }
+  .btn-jnl-open    { padding: 4px 8px; font-size: 11px; margin-left: 0; }
+  .btn-jnl-reissue { padding: 4px 7px; font-size: 11px; }
+  .btn-jnl-del     { padding: 4px 7px; font-size: 11px; }
+
+  /* Login */
+  .login-card { width: calc(100% - 24px); padding: 28px 18px 22px; }
+  .login-logo { font-size: 18px; }
+
+  /* Instruction modal */
+  .instr-overlay { padding: 8px; }
+  .instr-body { padding: 14px 14px 22px; }
+  .instr-body ol, .instr-body ul { font-size: 13px; }
+}
+
 .print-kp { display: none; }
 
 @media print {
@@ -1157,23 +1262,44 @@ input[readonly] {
           <li>Откройте сайт конструктора в браузере.</li>
           <li>Введите свой <strong>логин</strong> (выдаётся администратором) и <strong>пароль</strong>.</li>
           <li>Нажмите кнопку <strong>«Войти»</strong> или клавишу Enter.</li>
-          <li>В правом верхнем углу отобразится ваш логин — значит вход выполнен успешно.</li>
+          <li>После входа сразу откроется <strong>журнал КП за сегодня</strong>.</li>
+          <li>Ваш логин отображается в правом верхнем углу.</li>
         </ol>
         <div class="instr-tip">💡 Если забыли пароль — обратитесь к администратору.</div>
       </div>
 
       <div class="instr-section">
-        <h3>2. Информация о клиенте</h3>
+        <h3>2. Журнал КП</h3>
         <ol>
-          <li>Заполните поле <strong>«ФИО клиента»</strong> — только кириллица, минимум фамилия и имя через пробел (например: Иванов Иван Иванович).</li>
-          <li>Введите <strong>телефон</strong> — система автоматически форматирует номер в вид +7 (XXX) XXX-XX-XX. Просто вводите цифры.</li>
-          <li><strong>Дата КП</strong> устанавливается автоматически и не редактируется.</li>
+          <li>Журнал открывается автоматически при входе и показывает КП <strong>за сегодня</strong>.</li>
+          <li>Для смены периода используйте кнопки: <strong>Сегодня / Неделя / Месяц / Все</strong> — или задайте даты вручную в полях «С» и «По».</li>
+          <li>Для поиска по клиенту введите <strong>ФИО или телефон</strong> в строку поиска — список фильтруется сразу.</li>
+          <li>В журнале отображаются: ФИО клиента, телефон, дата КП, сумма КП.</li>
         </ol>
-        <div class="instr-warn">⚠ Без заполнения ФИО и телефона распечатать КП невозможно.</div>
+        <div class="instr-tip">💡 Кнопка <strong>«📋 Журнал КП»</strong> в шапке открывает журнал в любой момент.</div>
       </div>
 
       <div class="instr-section">
-        <h3>3. Раздел «Оправа»</h3>
+        <h3>3. Создание нового КП</h3>
+        <ol>
+          <li>В журнале нажмите кнопку <strong>«✏️ Создать коммерческое предложение»</strong> — откроется пустой бланк.</li>
+          <li>Заполните данные клиента, добавьте оправу, линзы и услуги.</li>
+          <li>Нажмите <strong>«🖨️ Распечатать КП»</strong> — КП сохранится в журнале и откроется диалог печати.</li>
+        </ol>
+      </div>
+
+      <div class="instr-section">
+        <h3>4. Информация о клиенте</h3>
+        <ol>
+          <li>Заполните поле <strong>«ФИО клиента»</strong> — только кириллица, минимум фамилия и имя через пробел (например: Иванов Иван Иванович). Система сразу покажет ошибку если что-то не так.</li>
+          <li>Введите <strong>телефон</strong> — просто вводите цифры, система сама форматирует в вид <strong>+7 (XXX) XXX-XX-XX</strong>. Номер должен быть введён полностью.</li>
+          <li><strong>Дата КП</strong> устанавливается автоматически (сегодняшний день) и не редактируется.</li>
+        </ol>
+        <div class="instr-warn">⚠ Без корректного ФИО и полного номера телефона распечатать КП невозможно.</div>
+      </div>
+
+      <div class="instr-section">
+        <h3>5. Раздел «Оправа»</h3>
         <ol>
           <li>Нажмите <strong>«+ Добавить оправу»</strong> — появится строка для ввода.</li>
           <li>Введите название оправы и артикул в поле «Наименование».</li>
@@ -1185,10 +1311,10 @@ input[readonly] {
       </div>
 
       <div class="instr-section">
-        <h3>4. Раздел «Очковые линзы»</h3>
+        <h3>6. Раздел «Очковые линзы»</h3>
         <ol>
           <li>Нажмите <strong>«+ Добавить линзы»</strong>.</li>
-          <li>Выберите <strong>тип линз</strong> из списка: «Очковые линзы» или «Очковые рецептурные линзы».</li>
+          <li>Выберите <strong>тип линз</strong>: «Очковые линзы» или «Очковые рецептурные линзы».</li>
           <li>Выберите <strong>бренд</strong>: GENEX, Neolook, Nikon, RENZU, Essilor Stellest, YOUNGER.</li>
           <li>Укажите <strong>положение линзы</strong>: OD (правый глаз), OS (левый глаз) или OD и OS (оба).</li>
           <li>Введите <strong>наименование</strong>, <strong>цену</strong> и при необходимости <strong>скидку %</strong>.</li>
@@ -1197,22 +1323,22 @@ input[readonly] {
       </div>
 
       <div class="instr-section">
-        <h3>5. Раздел «Услуги»</h3>
+        <h3>7. Раздел «Услуги»</h3>
         <ul>
-          <li><strong>«⚙️ Изготовление очков»</strong> — добавляет услугу с ценой, рассчитанной автоматически: 12% от суммы оправы и линз. Если выбрана «Оправа клиента» — 20% от стоимости линз.</li>
+          <li><strong>«⚙️ Изготовление очков»</strong> — цена рассчитывается автоматически: 12% от суммы оправы и линз. Если выбрана «Оправа клиента» — 20% от стоимости линз.</li>
           <li><strong>«🔧 Добавить ДСО»</strong> — дополнительное сервисное обслуживание, 5% от стоимости оправы и линз. Рассчитывается автоматически.</li>
-          <li><strong>«👓 Подбор оправы»</strong> — добавляет услугу «Подбор оправы специалистом» с ценой 0 (бесплатно).</li>
-          <li><strong>«👁️ Проверка зрения»</strong> — добавляет услугу «Проверка зрения оптометристом/врачём» с ценой 0.</li>
+          <li><strong>«👓 Подбор оправы»</strong> — услуга «Подбор оправы специалистом», цена 0 (бесплатно).</li>
+          <li><strong>«👁️ Проверка зрения»</strong> — услуга «Проверка зрения оптометристом/врачём», цена 0.</li>
           <li><strong>«+ Добавить услугу»</strong> — произвольная услуга с ручным вводом цены.</li>
         </ul>
         <div class="instr-tip">💡 Цены на «Изготовление» и «ДСО» пересчитываются автоматически при каждом изменении цен в оправе и линзах.</div>
       </div>
 
       <div class="instr-section">
-        <h3>6. Итоги</h3>
+        <h3>8. Итоги</h3>
         <ul>
-          <li>Панель <strong>«Итоги»</strong> справа обновляется в реальном времени.</li>
-          <li><strong>«Итого до скидки»</strong> — сумма всех позиций и услуг без учёта скидок.</li>
+          <li>Панель <strong>«Итоги»</strong> обновляется в реальном времени.</li>
+          <li><strong>«Итого до скидки»</strong> — сумма всех позиций и услуг без скидок.</li>
           <li><strong>«Сумма скидки»</strong> — общая скидка по оправе и линзам.</li>
           <li><strong>«Услуги»</strong> — итог по разделу услуг.</li>
           <li><strong>«Итого к оплате»</strong> — финальная сумма для клиента.</li>
@@ -1220,7 +1346,7 @@ input[readonly] {
       </div>
 
       <div class="instr-section">
-        <h3>7. Печать КП</h3>
+        <h3>9. Печать КП</h3>
         <ol>
           <li>Убедитесь, что заполнены ФИО, телефон и добавлена хотя бы одна оправа или линза.</li>
           <li>Нажмите кнопку <strong>«🖨️ Распечатать КП»</strong> в шапке или в панели итогов.</li>
@@ -1231,14 +1357,12 @@ input[readonly] {
       </div>
 
       <div class="instr-section">
-        <h3>8. Журнал КП</h3>
-        <ol>
-          <li>Нажмите кнопку <strong>«📋 Журнал КП»</strong> в шапке — откроется список всех ваших КП.</li>
-          <li>В журнале отображаются: ФИО клиента, телефон, дата КП, сумма к оплате.</li>
-          <li>Нажмите <strong>«✏️ Открыть»</strong> рядом с нужным КП, чтобы вернуться к его редактированию.</li>
-          <li>После изменений повторно нажмите «🖨️ Распечатать КП» — запись в журнале обновится (новая не создаётся).</li>
-          <li>Для создания нового КП нажмите <strong>«✏️ Создать коммерческое предложение»</strong> в верхней части журнала.</li>
-        </ol>
+        <h3>10. Редактирование и перевыставление КП</h3>
+        <ul>
+          <li><strong>«✏️ Открыть»</strong> — открывает существующее КП для редактирования. После изменений нажмите «Распечатать» — запись в журнале <strong>обновится</strong>, новая создана не будет.</li>
+          <li><strong>«🔄 Перевыставить»</strong> — создаёт <strong>новое КП</strong> с теми же данными (клиент, оправа, линзы, услуги), но с сегодняшней датой. Удобно, если клиент вернулся и нужно обновить предложение. Старое КП остаётся в журнале без изменений.</li>
+        </ul>
+        <div class="instr-tip">💡 Используйте «Перевыставить» когда прошли 3 дня и нужно выдать клиенту актуальный документ.</div>
       </div>
 
     </div>
@@ -2131,7 +2255,8 @@ function applyJournalFilter() {
       <td class="jnl-total">${(r.total || 0).toLocaleString('ru-RU')} ₽</td>
       ${isAdmin ? `<td class="jnl-emp">${r.employee_name || '—'}</td>` : ''}
       <td class="jnl-actions">
-        <button class="btn-jnl-open" onclick="reopenKP(${r.id})">✏️ Открыть</button>
+        <button class="btn-jnl-open"    onclick="reopenKP(${r.id})">✏️ Открыть</button>
+        <button class="btn-jnl-reissue" onclick="reissueKP(${r.id})">🔄 Перевыставить</button>
         ${isAdmin ? `<button class="btn-jnl-del" onclick="deleteKP(${r.id})">✕</button>` : ''}
       </td>
     </tr>`).join('');
@@ -2143,12 +2268,35 @@ function applyJournalFilter() {
         <th style="width:${isAdmin?'22%':'27%'}">ФИО клиента</th>
         <th style="width:${isAdmin?'15%':'18%'}">Телефон</th>
         <th style="width:${isAdmin?'11%':'13%'}">Дата КП</th>
-        <th class="right" style="width:${isAdmin?'14%':'18%'}">Итого к оплате</th>
+        <th class="right" style="width:${isAdmin?'14%':'18%'}">Сумма КП</th>
         ${adminHeader}
         <th style="width:${isAdmin?'23%':'24%'}"></th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
+}
+
+function reissueKP(id) {
+  const r = journalCache.find(rec => rec.id === id);
+  if (!r || !r.data) return;
+  currentKPId = null; // новое КП — не перезаписываем старое
+  closeJournal();
+
+  // Заполняем данными из старого КП
+  document.getElementById('cl-name').value  = r.client_name  !== '—' ? r.client_name  : '';
+  document.getElementById('cl-phone').value = r.client_phone !== '—' ? r.client_phone : '';
+  // Дата — сегодняшняя (это новое КП)
+  document.getElementById('cl-date').value  = new Date().toISOString().split('T')[0];
+
+  document.getElementById('frame-rows').innerHTML = '';
+  document.getElementById('lens-rows').innerHTML  = '';
+  document.getElementById('svc-rows').innerHTML   = '';
+
+  (r.data.frames   || []).forEach(f => addFrameRow(f.name, f.price > 0 ? String(f.price) : '', String(f.disc || 0)));
+  (r.data.lenses   || []).forEach(l => addLensRow(l.type || '', l.brand || '', l.pos || '', l.name || '', l.price > 0 ? String(l.price) : '', String(l.disc || 0)));
+  (r.data.services || []).forEach(s => addSvcRow(s.name || '', s.price > 0 ? String(s.price) : ''));
+
+  calcTotals();
 }
 
 async function deleteKP(id) {
