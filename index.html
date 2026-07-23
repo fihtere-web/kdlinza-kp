@@ -1885,15 +1885,19 @@ function updatePrint() {
   // Контакты магазина из настроек пользователя
   const DEFAULT_PHONE   = '+7 (900) 348-97-19';
   const DEFAULT_ADDRESS = 'ТРЦ «Балтия Молл»\nКалининградская обл., м.о. Гурьевский,\nПриморское кольцо, д. 2';
-  const storePhone   = (currentUserSettings.phone   || '').trim() || DEFAULT_PHONE;
-  const storeAddress = (currentUserSettings.address || '').trim() || DEFAULT_ADDRESS;
+  const storePhone    = (currentUserSettings.phone      || '').trim() || DEFAULT_PHONE;
+  const storeAddress  = (currentUserSettings.address    || '').trim() || DEFAULT_ADDRESS;
+  const workFrom      = (currentUserSettings.work_from  || '').trim();
+  const workTo        = (currentUserSettings.work_to    || '').trim();
   const addrHtml = storeAddress.replace(/\n/g, '<br>');
+  const workHtml = (workFrom && workTo) ? `<br><span style="font-size:7pt;opacity:.9;">Ежедневно с ${workFrom} до ${workTo}</span>` : '';
   const leftEl = document.getElementById('pr-store-left');
-  if (leftEl) leftEl.innerHTML = `<strong>Оптика KDLINZA.RU</strong><br>${addrHtml}`;
+  if (leftEl) leftEl.innerHTML = `<strong>Оптика KDLINZA.RU</strong><br>${addrHtml}${workHtml}`;
   const rightEl = document.getElementById('pr-store-right');
   if (rightEl) rightEl.innerHTML = `<strong>${storePhone}</strong><br>kdlinza.ru`;
   const footerEl = document.getElementById('pr-store-footer');
-  if (footerEl) footerEl.textContent = `Оптика KDLINZA.RU • ${storeAddress.replace(/\n/g, ', ')} • ${storePhone}`;
+  const workFooter = (workFrom && workTo) ? ` • Ежедневно с ${workFrom} до ${workTo}` : '';
+  if (footerEl) footerEl.textContent = `Оптика KDLINZA.RU • ${storeAddress.replace(/\n/g, ', ')} • ${storePhone}${workFooter}`;
 
   // Client info
   const name  = document.getElementById('cl-name').value  || '—';
@@ -2380,27 +2384,38 @@ async function renderUsersPanel() {
   }
   let html = `
     <div class="usr-panel-hint">
-      Заполните телефон и адрес для каждого сотрудника — они будут отображаться в его печатных КП.<br>
+      Заполните телефон, адрес и режим работы для каждого сотрудника — они будут отображаться в его печатных КП.<br>
       Адрес можно вводить в несколько строк (каждая строка — новая строка в шапке КП).
     </div>
     <div style="overflow-x:auto;padding:16px 24px;">
     <table class="usr-table">
       <thead><tr>
-        <th style="width:18%">Сотрудник</th>
-        <th style="width:22%">Телефон в КП</th>
-        <th style="width:44%">Адрес в КП</th>
-        <th style="width:16%"></th>
+        <th style="width:15%">Сотрудник</th>
+        <th style="width:18%">Телефон в КП</th>
+        <th style="width:35%">Адрес в КП</th>
+        <th style="width:18%">Режим работы</th>
+        <th style="width:14%"></th>
       </tr></thead>
       <tbody>`;
   data.forEach(row => {
     const uid = row.user_id;
     const dn  = row.display_name || row.user_id;
-    const ph  = (row.phone   || '').replace(/"/g, '&quot;');
-    const ad  = (row.address || '').replace(/</g, '&lt;');
+    const ph  = (row.phone      || '').replace(/"/g, '&quot;');
+    const ad  = (row.address    || '').replace(/</g, '&lt;');
+    const wf  = (row.work_from  || '').replace(/"/g, '&quot;');
+    const wt  = (row.work_to    || '').replace(/"/g, '&quot;');
     html += `<tr id="usr-row-${uid}">
       <td><strong>${dn}</strong></td>
       <td><input class="usr-input" id="usr-ph-${uid}" value="${ph}" placeholder="+7 (___) ___-__-__"></td>
       <td><textarea class="usr-textarea" id="usr-ad-${uid}" placeholder="Название магазина&#10;Город, улица, дом">${ad}</textarea></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:#555;">с</span>
+          <input type="time" class="usr-input" id="usr-wf-${uid}" value="${wf}" style="width:90px;">
+          <span style="font-size:12px;color:#555;">до</span>
+          <input type="time" class="usr-input" id="usr-wt-${uid}" value="${wt}" style="width:90px;">
+        </div>
+      </td>
       <td><button class="btn-usr-save" onclick="saveUserSetting('${uid}')">Сохранить</button></td>
     </tr>`;
   });
@@ -2411,12 +2426,19 @@ async function renderUsersPanel() {
 async function saveUserSetting(userId) {
   const phoneEl   = document.getElementById('usr-ph-' + userId);
   const addrEl    = document.getElementById('usr-ad-' + userId);
+  const wfEl      = document.getElementById('usr-wf-' + userId);
+  const wtEl      = document.getElementById('usr-wt-' + userId);
   const btn       = document.querySelector(`#usr-row-${userId} .btn-usr-save`);
   if (!phoneEl || !addrEl) return;
   btn.textContent = 'Сохраняю...';
   btn.disabled = true;
   const { error } = await supa.from('user_settings')
-    .update({ phone: phoneEl.value.trim(), address: addrEl.value.trim() })
+    .update({
+      phone:     phoneEl.value.trim(),
+      address:   addrEl.value.trim(),
+      work_from: wfEl ? wfEl.value.trim() : '',
+      work_to:   wtEl ? wtEl.value.trim() : ''
+    })
     .eq('user_id', userId);
   if (error) {
     alert('Ошибка сохранения: ' + error.message);
@@ -2426,8 +2448,10 @@ async function saveUserSetting(userId) {
   }
   // Если это текущий пользователь — обновляем локальные настройки и баннер
   if (currentUser && userId === currentUser.id) {
-    currentUserSettings.phone   = phoneEl.value.trim();
-    currentUserSettings.address = addrEl.value.trim();
+    currentUserSettings.phone     = phoneEl.value.trim();
+    currentUserSettings.address   = addrEl.value.trim();
+    currentUserSettings.work_from = wfEl ? wfEl.value.trim() : '';
+    currentUserSettings.work_to   = wtEl ? wtEl.value.trim() : '';
     updatePrint();
   }
   btn.textContent = '✓ Сохранено';
